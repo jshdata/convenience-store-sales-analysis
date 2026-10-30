@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 from cv_store.config.settings import DATA_DIR
-from cv_store.database.connection import connection
+from cv_store.database.connection import connection, open_cursor
 
 DEFAULT_SOURCE = DATA_DIR / "raw" / "search_trends" / "trend_data2.csv"
 
@@ -29,8 +29,8 @@ def load_search_trends(path=DEFAULT_SOURCE):
 def insert_search_trends(frame):
     with connection() as conn:
         try:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT DATE, seven, GS25, CU, cs FROM naver_search_trend")
+            with open_cursor(conn) as cursor:
+                cursor.execute("SELECT trend_date, seven, gs25, cu, cs FROM naver_search_trend")
                 existing = {}
                 for day, *values in cursor.fetchall():
                     key = str(day)[:10]
@@ -48,7 +48,7 @@ def insert_search_trends(frame):
                     rows.append((day, *values))
                 if rows:
                     cursor.executemany(
-                        "INSERT INTO naver_search_trend (DATE, seven, GS25, CU, cs) "
+                        "INSERT INTO naver_search_trend (trend_date, seven, gs25, cu, cs) "
                         "VALUES (%s, %s, %s, %s, %s)", rows,
                     )
             conn.commit()

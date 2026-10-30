@@ -2,7 +2,8 @@
 
 import logging
 
-from cv_store.database.connection import connection
+from cv_store.config.settings import db_engine
+from cv_store.database.connection import connection, dictionary_cursor, open_cursor
 
 logger = logging.getLogger(__name__)
 SALE_COLUMNS = (
@@ -13,7 +14,6 @@ SALE_COLUMNS = (
 
 
 def create_app():
-    import pymysql
     from flask import Flask, jsonify
 
     app = Flask(__name__)
@@ -22,7 +22,7 @@ def create_app():
     def get_sale_data():
         try:
             with connection() as conn:
-                with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+                with dictionary_cursor(conn) as cursor:
                     cursor.execute("SELECT " + ", ".join(SALE_COLUMNS) + " FROM all_sale")
                     rows = cursor.fetchall()
             return jsonify({"status": "success", "sale_data": rows})
@@ -37,8 +37,12 @@ def create_app():
             return jsonify({"status": "error", "message": "Not found"}), 404
         try:
             with connection() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute("SHOW TABLES")
+                with open_cursor(conn) as cursor:
+                    cursor.execute(
+                        "SELECT table_name FROM information_schema.tables "
+                        "WHERE table_schema = 'public' ORDER BY table_name"
+                        if db_engine() == "postgresql" else "SHOW TABLES"
+                    )
                     tables = cursor.fetchall()
             return jsonify({"status": "success", "tables": tables})
         except Exception:

@@ -150,8 +150,7 @@ def test_sales_existing_values_skip_and_conflicts_rollback(monkeypatch, sales_so
     frame = sales.load_sales(sales_source).iloc[:1]
     row = frame.iloc[0]
     conn, cursor = Mock(), Mock()
-    conn.cursor.return_value.__enter__ = Mock(return_value=cursor)
-    conn.cursor.return_value.__exit__ = Mock(return_value=False)
+    conn.cursor.return_value = cursor
 
     @contextmanager
     def fake_connection():

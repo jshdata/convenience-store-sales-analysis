@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 from cv_store.config.settings import DATA_DIR
-from cv_store.database.connection import connection
+from cv_store.database.connection import connection, open_cursor
 from cv_store.database.repository import normalize_store
 
 DEFAULT_SOURCE = DATA_DIR / "raw" / "sales" / "all.xlsx"
@@ -36,7 +36,7 @@ def insert_sales(frame):
     """기존 sale만 사용. 동일 키는 같은 값일 때 생략, 충돌 시 전체 적재 중단."""
     with connection() as conn:
         try:
-            with conn.cursor() as cursor:
+            with open_cursor(conn) as cursor:
                 cursor.execute("SELECT sale_date, store_type, sale, store_count FROM sale")
                 existing = {}
                 for day, store, amount, count in cursor.fetchall():

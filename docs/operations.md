@@ -1,6 +1,13 @@
 # 운영 준비와 미확인 사항
 
-## 이번 정리의 범위
+## 현재 DB 상태
+
+로컬 MariaDB의 스키마를 확인해 Aiven PostgreSQL로 복사했습니다. 원본은 읽기 전용으로 유지했고,
+모든 행의 해시와 별도 애플리케이션 조회를 검증했습니다. 연결은 SSL 및 CA/호스트 검증을 사용합니다.
+상세 내용은 [PostgreSQL 설정 문서](postgresql_setup.md)에 기록했습니다.
+아래 구조 정리 단계의 기록과 별개로 DB 이전이 완료됐으며 서버·Slack·Tableau는 후속 작업입니다.
+
+## 초기 구조 정리의 범위
 
 - 소스·데이터·실험 분리, 파일 이름 정리, 공통 설정, 로컬 회귀 테스트.
 - 서버·DB·Slack 앱을 생성하지 않음. DB/Slack/수집 사이트와 실제 통신하지 않음.
@@ -21,10 +28,12 @@
 
 ## 설정
 
-`.env.example`은 변수 목록이며 `.env` 자동 로더는 사용하지 않습니다.
-로컬 셸이나 실행 도구에서 프로세스 환경변수로 주입하세요.
+`.env.example`은 변수 목록입니다. DB 연결 시 프로젝트 루트 `.env`를 자동으로 읽고,
+이미 지정된 프로세스 환경변수는 덮어쓰지 않습니다.
 
-- DB: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
+- DB: `DB_ENGINE`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
+- PostgreSQL SSL: `DB_SSLMODE=verify-full`, `DB_SSLROOTCERT`에 Aiven CA 인증서 경로.
+- 이전 원본 MariaDB: `SOURCE_DB_*`. 대상 DB와 접속 설정을 분리하고 읽기 전용으로 점검.
 - Slack: `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, 기능별 `SLACK_CHANNEL_*`.
 - Tableau: `TABLEAU_DASHBOARD_URL`, `TABLEAU_TP_URL`.
 - Selenium: 선택적 `CHROMEDRIVER_PATH` 및 설치된 Chrome.
