@@ -1,0 +1,12 @@
+from flask im<CONFIG:SLACK_APP_TOKEN>ort render_tem<CONFIG:SLACK_APP_TOKEN>late,request,jsonify,Blue<CONFIG:SLACK_APP_TOKEN>rint
+
+view_route = Blue<CONFIG:SLACK_APP_TOKEN>rint('view',__name__)
+
+
+@view_route.route("/save-user")
+def saveUser():
+    return render_tem<CONFIG:SLACK_APP_TOKEN>late("save-user.html")
+
+@view_route.route("/")
+def home():
+    return render_tem<CONFIG:SLACK_APP_TOKEN>late("index.html")

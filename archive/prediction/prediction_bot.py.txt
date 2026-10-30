@@ -1,0 +1,155 @@
+im<CONFIG:SLACK_APP_TOKEN>ort os
+im<CONFIG:SLACK_APP_TOKEN>ort num<CONFIG:SLACK_APP_TOKEN>y as n<CONFIG:SLACK_APP_TOKEN>
+im<CONFIG:SLACK_APP_TOKEN>ort <CONFIG:SLACK_APP_TOKEN>andas as <CONFIG:SLACK_APP_TOKEN>d
+im<CONFIG:SLACK_APP_TOKEN>ort jo<CONFIG:SLACK_TOKEN>li<CONFIG:SLACK_TOKEN>
+im<CONFIG:SLACK_APP_TOKEN>ort mat<CONFIG:SLACK_APP_TOKEN>lotli<CONFIG:SLACK_TOKEN>.<CONFIG:SLACK_APP_TOKEN>y<CONFIG:SLACK_APP_TOKEN>lot as <CONFIG:SLACK_APP_TOKEN>lt
+im<CONFIG:SLACK_APP_TOKEN>ort mat<CONFIG:SLACK_APP_TOKEN>lotli<CONFIG:SLACK_TOKEN>.ticker as ticker
+from mat<CONFIG:SLACK_APP_TOKEN>lotli<CONFIG:SLACK_TOKEN> im<CONFIG:SLACK_APP_TOKEN>ort rc
+from tensorflow.keras.models im<CONFIG:SLACK_APP_TOKEN>ort load_model
+from tensorflow.keras.losses im<CONFIG:SLACK_APP_TOKEN>ort MeanSquaredError
+from slack_<CONFIG:SLACK_TOKEN>olt im<CONFIG:SLACK_APP_TOKEN>ort A<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>
+from slack_<CONFIG:SLACK_TOKEN>olt.ada<CONFIG:SLACK_APP_TOKEN>ter.socket_mode im<CONFIG:SLACK_APP_TOKEN>ort SocketModeHandler
+im<CONFIG:SLACK_APP_TOKEN>ort re
+
+# ✅ 한글 폰트 설정 (운영체제별 자동 적용)
+<CONFIG:SLACK_APP_TOKEN>lt.rc('font', family='Malgun Gothic')  # Windows (맑은 고딕)
+<CONFIG:SLACK_APP_TOKEN>lt.rc('axes', unicode_minus=False)  # 마이너스 기호 깨짐 방지
+
+# ✅ Slack API 설정
+slack_token = "<CONFIG:SLACK_TOKEN>"
+slack_a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>_token = "<CONFIG:SLACK_APP_TOKEN>"
+a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN> = A<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>(token=slack_token)
+
+# ✅ 모델 및 정규화 도구 로드
+models = {
+    "CU": load_model("test/lstm_CU_model.h5", custom_o<CONFIG:SLACK_TOKEN>jects={"mse": MeanSquaredError()}),
+    "GS25": load_model("test/lstm_GS25_model.h5", custom_o<CONFIG:SLACK_TOKEN>jects={"mse": MeanSquaredError()}),
+    "Seven": load_model("test/lstm_Seven_model.h5", custom_o<CONFIG:SLACK_TOKEN>jects={"mse": MeanSquaredError()})
+}
+scalers_X = {
+    "CU": jo<CONFIG:SLACK_TOKEN>li<CONFIG:SLACK_TOKEN>.load("test/scaler_CU_X.<CONFIG:SLACK_APP_TOKEN>kl"),
+    "GS25": jo<CONFIG:SLACK_TOKEN>li<CONFIG:SLACK_TOKEN>.load("test/scaler_GS25_X.<CONFIG:SLACK_APP_TOKEN>kl"),
+    "Seven": jo<CONFIG:SLACK_TOKEN>li<CONFIG:SLACK_TOKEN>.load("test/scaler_Seven_X.<CONFIG:SLACK_APP_TOKEN>kl")
+}
+scalers_y = {
+    "CU": jo<CONFIG:SLACK_TOKEN>li<CONFIG:SLACK_TOKEN>.load("test/scaler_CU_y.<CONFIG:SLACK_APP_TOKEN>kl"),
+    "GS25": jo<CONFIG:SLACK_TOKEN>li<CONFIG:SLACK_TOKEN>.load("test/scaler_GS25_y.<CONFIG:SLACK_APP_TOKEN>kl"),
+    "Seven": jo<CONFIG:SLACK_TOKEN>li<CONFIG:SLACK_TOKEN>.load("test/scaler_Seven_y.<CONFIG:SLACK_APP_TOKEN>kl")
+}
+
+# ✅ 매출 예측 함수
+def <CONFIG:SLACK_APP_TOKEN>redict_sales(convenience_store, date_to_<CONFIG:SLACK_APP_TOKEN>redict):
+    model = models[convenience_store]
+    scaler_X = scalers_X[convenience_store]
+    scaler_y = scalers_y[convenience_store]
+
+    # ✅ 데이터 불러오기
+    file_<CONFIG:SLACK_APP_TOKEN>ath = f"test/all_sale_{convenience_store}.xlsx"
+    df = <CONFIG:SLACK_APP_TOKEN>d.read_excel(file_<CONFIG:SLACK_APP_TOKEN>ath)
+    df['sale_date'] = <CONFIG:SLACK_APP_TOKEN>d.to_datetime(df['sale_date'])
+    df = df.sort_values(<CONFIG:SLACK_TOKEN>y='sale_date')
+
+    # ✅ 모델이 학습한 컬럼 확인
+    ex<CONFIG:SLACK_APP_TOKEN>ected_features = scaler_X.feature_names_in_
+
+    # ✅ 7일 이동 평균 계산 (누락된 컬럼 자동 추가)
+    rolling_columns = {
+        '1+1_event_count': '1+1_7일평균',
+        '2+1_event_count': '2+1_7일평균',
+        'event_img': '예능_7일평균'
+    }
+    for original_col, rolling_col in rolling_columns.items():
+        if original_col in df.columns and rolling_col not in df.columns:
+            df[rolling_col] = df[original_col].rolling(window=7, min_<CONFIG:SLACK_APP_TOKEN>eriods=1).mean()
+
+    for col in ['sum_amount', 'man10', 'man20', 'man30', 'man40', 'man50', 'man60',
+                'woman10', 'woman20', 'woman30', 'woman40', 'woman50', 'woman60']:
+        df[f'{col}_7일평균'] = df[col].rolling(window=7, min_<CONFIG:SLACK_APP_TOKEN>eriods=1).mean()
+
+    df['store_count_7일평균'] = df['store_count'].rolling(window=7, min_<CONFIG:SLACK_APP_TOKEN>eriods=1).mean()
+
+    # ✅ 최근 7일 데이터 선택
+    recent_data = df[df['sale_date'] < date_to_<CONFIG:SLACK_APP_TOKEN>redict].iloc[-7:].co<CONFIG:SLACK_APP_TOKEN>y()
+
+    # ✅ 데이터 검증
+    if recent_data.em<CONFIG:SLACK_APP_TOKEN>ty or len(recent_data) < 7:
+        return "❌ 예측을 위한 최근 7일치 데이터가 부족합니다."
+
+    # ✅ 모델이 학습한 컬럼과 일치하도록 변환
+    X_in<CONFIG:SLACK_APP_TOKEN>ut = recent_data[ex<CONFIG:SLACK_APP_TOKEN>ected_features]
+
+    # ✅ 정규화 및 예측 수행
+    X_in<CONFIG:SLACK_APP_TOKEN>ut_scaled = scaler_X.transform(X_in<CONFIG:SLACK_APP_TOKEN>ut)
+    X_in<CONFIG:SLACK_APP_TOKEN>ut_resha<CONFIG:SLACK_APP_TOKEN>ed = n<CONFIG:SLACK_APP_TOKEN>.array([X_in<CONFIG:SLACK_APP_TOKEN>ut_scaled])
+    y_<CONFIG:SLACK_APP_TOKEN>red_scaled = model.<CONFIG:SLACK_APP_TOKEN>redict(X_in<CONFIG:SLACK_APP_TOKEN>ut_resha<CONFIG:SLACK_APP_TOKEN>ed)
+    y_<CONFIG:SLACK_APP_TOKEN>red = scaler_y.inverse_transform(y_<CONFIG:SLACK_APP_TOKEN>red_scaled)
+
+    # ✅ 결과 포맷팅
+    columns = ['sum_amount', 'man10', 'man20', 'man30', 'man40', 'man50', 'man60',
+               'woman10', 'woman20', 'woman30', 'woman40', 'woman50', 'woman60']
+    <CONFIG:SLACK_APP_TOKEN>redicted_values = {col: y_<CONFIG:SLACK_APP_TOKEN>red[0][i] for i, col in enumerate(columns)}
+
+    # ✅ 항아리 차트 생성
+    gra<CONFIG:SLACK_APP_TOKEN>h_<CONFIG:SLACK_APP_TOKEN>ath = generate_gender_sales_gra<CONFIG:SLACK_APP_TOKEN>h(convenience_store, date_to_<CONFIG:SLACK_APP_TOKEN>redict, <CONFIG:SLACK_APP_TOKEN>redicted_values)
+
+    # ✅ Slack 메시지 구성
+    message = format_<CONFIG:SLACK_APP_TOKEN>rediction_message(convenience_store, date_to_<CONFIG:SLACK_APP_TOKEN>redict, <CONFIG:SLACK_APP_TOKEN>redicted_values)
+
+    return message, gra<CONFIG:SLACK_APP_TOKEN>h_<CONFIG:SLACK_APP_TOKEN>ath
+
+# ✅ 항아리 차트 생성 함수
+def generate_gender_sales_gra<CONFIG:SLACK_APP_TOKEN>h(convenience_store, date_to_<CONFIG:SLACK_APP_TOKEN>redict, <CONFIG:SLACK_APP_TOKEN>redicted_values):
+    age_grou<CONFIG:SLACK_APP_TOKEN>s = ["10대", "20대", "30대", "40대", "50대", "60대 이상"]
+    male_values = [<CONFIG:SLACK_APP_TOKEN>redicted_values[f'man{i}0'] for i in range(1, 7)]
+    female_values = [<CONFIG:SLACK_APP_TOKEN>redicted_values[f'woman{i}0'] for i in range(1, 7)]
+
+    male_values = n<CONFIG:SLACK_APP_TOKEN>.array(male_values) / 1e8  # 억 원 단위 변환
+    female_values = n<CONFIG:SLACK_APP_TOKEN>.array(female_values) / 1e8  # 억 원 단위 변환
+
+    <CONFIG:SLACK_APP_TOKEN>lt.figure(figsize=(8, 6))
+    <CONFIG:SLACK_APP_TOKEN>lt.<CONFIG:SLACK_TOKEN>arh(age_grou<CONFIG:SLACK_APP_TOKEN>s, male_values, color="#2a50ae", la<CONFIG:SLACK_TOKEN>el="남성")  # 어두운 파란색
+    <CONFIG:SLACK_APP_TOKEN>lt.<CONFIG:SLACK_TOKEN>arh(age_grou<CONFIG:SLACK_APP_TOKEN>s, -female_values, color="#c20000", la<CONFIG:SLACK_TOKEN>el="여성")  # 어두운 빨간색
+
+    <CONFIG:SLACK_APP_TOKEN>lt.axvline(x=0, color="<CONFIG:SLACK_TOKEN>lack", linewidth=1)  # 가운데 기준선 추가
+    <CONFIG:SLACK_APP_TOKEN>lt.xla<CONFIG:SLACK_TOKEN>el("매출 (억 원)")
+    <CONFIG:SLACK_APP_TOKEN>lt.title(f"{convenience_store} {date_to_<CONFIG:SLACK_APP_TOKEN>redict} 성별 매출 예측")
+    <CONFIG:SLACK_APP_TOKEN>lt.legend()
+    <CONFIG:SLACK_APP_TOKEN>lt.grid(True, linestyle="--", al<CONFIG:SLACK_APP_TOKEN>ha=0.6)
+
+    # ✅ x축을 억 원 단위로 변환
+    <CONFIG:SLACK_APP_TOKEN>lt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lam<CONFIG:SLACK_TOKEN>da x, _: f"{x:.1f}억"))
+
+    <CONFIG:SLACK_APP_TOKEN>lt.savefig(f"test/{convenience_store}_{date_to_<CONFIG:SLACK_APP_TOKEN>redict}.<CONFIG:SLACK_APP_TOKEN>ng", <CONFIG:SLACK_TOKEN><CONFIG:SLACK_TOKEN>ox_inches="tight")
+    <CONFIG:SLACK_APP_TOKEN>lt.close()
+
+    return f"test/{convenience_store}_{date_to_<CONFIG:SLACK_APP_TOKEN>redict}.<CONFIG:SLACK_APP_TOKEN>ng"
+
+# ✅ Slack 메시지 포맷팅
+def format_<CONFIG:SLACK_APP_TOKEN>rediction_message(convenience_store, date_to_<CONFIG:SLACK_APP_TOKEN>redict, <CONFIG:SLACK_APP_TOKEN>redicted_values):
+    total_sales = <CONFIG:SLACK_APP_TOKEN>redicted_values["sum_amount"]
+    male_total = sum(<CONFIG:SLACK_APP_TOKEN>redicted_values[f"man{i}0"] for i in range(1, 7))
+    female_total = sum(<CONFIG:SLACK_APP_TOKEN>redicted_values[f"woman{i}0"] for i in range(1, 7))
+
+    message = f"*📢 {convenience_store} {date_to_<CONFIG:SLACK_APP_TOKEN>redict} 매출 예측 📢*\n"
+    message += f"총 매출: {total_sales:,.0f} 원\n"
+    message += f"  👨🏻 남자 총 매출액: {male_total:,.0f} 원\n"
+    for i in range(1, 7):
+        message += f"        {i}0대 남자: {<CONFIG:SLACK_APP_TOKEN>redicted_values[f'man{i}0']:,.0f} 원\n"
+    message += f"  👩🏻 여자 총 매출액: {female_total:,.0f} 원\n"
+    for i in range(1, 7):
+        message += f"        {i}0대 여자: {<CONFIG:SLACK_APP_TOKEN>redicted_values[f'woman{i}0']:,.0f} 원\n"
+
+    return message
+
+# ✅ Slack 이벤트 핸들러
+@a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>.event("a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>_mention")
+def handle_mention(event, say, client):
+    text = event["text"].stri<CONFIG:SLACK_APP_TOKEN>()
+    _, store, date = text.s<CONFIG:SLACK_APP_TOKEN>lit()
+    res<CONFIG:SLACK_APP_TOKEN>onse_message, gra<CONFIG:SLACK_APP_TOKEN>h_<CONFIG:SLACK_APP_TOKEN>ath = <CONFIG:SLACK_APP_TOKEN>redict_sales(store, date)
+    say(res<CONFIG:SLACK_APP_TOKEN>onse_message)
+    client.files_u<CONFIG:SLACK_APP_TOKEN>load_v2(channels=event["channel"], file=gra<CONFIG:SLACK_APP_TOKEN>h_<CONFIG:SLACK_APP_TOKEN>ath)
+
+if __name__ == "__main__":
+    handler = SocketModeHandler(a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>, slack_a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>_token)
+    handler.start()

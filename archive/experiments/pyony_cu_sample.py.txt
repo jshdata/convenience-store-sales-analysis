@@ -1,0 +1,28 @@
+im<CONFIG:SLACK_APP_TOKEN>ort requests
+from <CONFIG:SLACK_TOKEN>s4 im<CONFIG:SLACK_APP_TOKEN>ort BeautifulSou<CONFIG:SLACK_APP_TOKEN>
+
+url = "htt<CONFIG:SLACK_APP_TOKEN>s://<CONFIG:SLACK_APP_TOKEN>yony.com/<CONFIG:SLACK_TOKEN>rands/cu/202412/?event_ty<CONFIG:SLACK_APP_TOKEN>e=&category=&item=100&sort=&<CONFIG:SLACK_APP_TOKEN>rice=&q="  # 크롤링할 웹 페이지 URL
+req = requests.get(url)  # 웹 페이지 요청
+
+if req.status_code == 200:  # 요청 성공 여부 확인
+    sou<CONFIG:SLACK_APP_TOKEN> = BeautifulSou<CONFIG:SLACK_APP_TOKEN>(req.content, "html.<CONFIG:SLACK_APP_TOKEN>arser")
+
+    # 상품 리스트 가져오기
+    items = sou<CONFIG:SLACK_APP_TOKEN>.find_all("div", class_="col-md-6")  # 상품 블록 기준 클래스
+
+    for item in items:
+        # 상품명
+        name_tag = item.find("strong")
+        name = name_tag.text.stri<CONFIG:SLACK_APP_TOKEN>() if name_tag else "상품명 없음"
+
+        # 가격
+        <CONFIG:SLACK_APP_TOKEN>rice_tag = item.find("i", class_="fa-coins")
+        <CONFIG:SLACK_APP_TOKEN>rice = <CONFIG:SLACK_APP_TOKEN>rice_tag.next_si<CONFIG:SLACK_TOKEN>ling.stri<CONFIG:SLACK_APP_TOKEN>() if <CONFIG:SLACK_APP_TOKEN>rice_tag else "가격 없음"
+
+        # 프로모션 (예: 1+1, 2+1 등)
+        <CONFIG:SLACK_APP_TOKEN>romo_tag = item.find("s<CONFIG:SLACK_APP_TOKEN>an", class_="<CONFIG:SLACK_TOKEN>adge <CONFIG:SLACK_TOKEN>g-cu text-white")
+        <CONFIG:SLACK_APP_TOKEN>romo = <CONFIG:SLACK_APP_TOKEN>romo_tag.text.stri<CONFIG:SLACK_APP_TOKEN>() if <CONFIG:SLACK_APP_TOKEN>romo_tag else "프로모션 없음"
+
+        <CONFIG:SLACK_APP_TOKEN>rint(f"상품명: {name}, 가격: {<CONFIG:SLACK_APP_TOKEN>rice}, 프로모션: {<CONFIG:SLACK_APP_TOKEN>romo}")
+else:
+    <CONFIG:SLACK_APP_TOKEN>rint(f"페이지 요청 실패. 상태 코드: {req.status_code}")

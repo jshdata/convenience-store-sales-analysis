@@ -1,0 +1,153 @@
+im<CONFIG:SLACK_APP_TOKEN>ort schedule
+im<CONFIG:SLACK_APP_TOKEN>ort time
+im<CONFIG:SLACK_APP_TOKEN>ort <CONFIG:SLACK_APP_TOKEN>ymysql
+from selenium im<CONFIG:SLACK_APP_TOKEN>ort we<CONFIG:SLACK_TOKEN>driver
+from selenium.we<CONFIG:SLACK_TOKEN>driver.common.<CONFIG:SLACK_TOKEN>y im<CONFIG:SLACK_APP_TOKEN>ort By
+from selenium.we<CONFIG:SLACK_TOKEN>driver.chrome.service im<CONFIG:SLACK_APP_TOKEN>ort Service
+from selenium.we<CONFIG:SLACK_TOKEN>driver.chrome.o<CONFIG:SLACK_APP_TOKEN>tions im<CONFIG:SLACK_APP_TOKEN>ort O<CONFIG:SLACK_APP_TOKEN>tions
+im<CONFIG:SLACK_APP_TOKEN>ort logging
+
+# 로그 설정 (로그 파일에 기록)
+logging.<CONFIG:SLACK_TOKEN>asicConfig(filename='/home/u<CONFIG:SLACK_TOKEN>untu/market/CU_schedule.log', 
+                    level=logging.DEBUG, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Chrome We<CONFIG:SLACK_TOKEN>Driver 경로 설정
+CHROMEDRIVER_PATH = "/home/u<CONFIG:SLACK_TOKEN>untu/chromedriver-linux64/chromedriver"
+
+# Headless 옵션 설정
+chrome_o<CONFIG:SLACK_APP_TOKEN>tions = O<CONFIG:SLACK_APP_TOKEN>tions()
+chrome_o<CONFIG:SLACK_APP_TOKEN>tions.add_argument("--headless")  # GUI 없이 실행
+chrome_o<CONFIG:SLACK_APP_TOKEN>tions.add_argument("--no-sand<CONFIG:SLACK_TOKEN>ox")
+chrome_o<CONFIG:SLACK_APP_TOKEN>tions.add_argument("--disa<CONFIG:SLACK_TOKEN>le-dev-shm-usage")
+chrome_o<CONFIG:SLACK_APP_TOKEN>tions.add_argument("--disa<CONFIG:SLACK_TOKEN>le-g<CONFIG:SLACK_APP_TOKEN>u")
+
+service = Service(CHROMEDRIVER_PATH)
+driver = we<CONFIG:SLACK_TOKEN>driver.Chrome(service=service, o<CONFIG:SLACK_APP_TOKEN>tions=chrome_o<CONFIG:SLACK_APP_TOKEN>tions)  # Headless 모드 적용
+
+# MariaDB 연결 설정
+DB_CONFIG = {
+    "host": "<CONFIG:DB_HOST>",
+    "user": "<CONFIG:DB_USER>",
+    "<CONFIG:SLACK_APP_TOKEN>assword": "<CONFIG:DB_PASSWORD>",
+    "data<CONFIG:SLACK_TOKEN>ase": "crawling",
+    "charset": "utf8m<CONFIG:SLACK_TOKEN>4"
+}
+
+# GS25 이벤트 첫 페이지 URL
+<CONFIG:SLACK_TOKEN>ase_url = "htt<CONFIG:SLACK_APP_TOKEN>://gs25.gsretail.com/gscvs/en/customer-engagement/event/current-events"
+
+def connect_d<CONFIG:SLACK_TOKEN>():
+    return <CONFIG:SLACK_APP_TOKEN>ymysql.connect(**DB_CONFIG)
+
+def is_event_exists(event_info):
+    """이미 저장된 이벤트인지 확인"""
+    conn = connect_d<CONFIG:SLACK_TOKEN>()
+    cursor = conn.cursor()
+    query = """
+    SELECT COUNT(*) FROM event_img 
+    WHERE img_url = %s AND start_date = %s AND end_date = %s 
+          AND event_title = %s AND store_ty<CONFIG:SLACK_APP_TOKEN>e = %s
+    """
+    cursor.execute(query, (
+        event_info["이미지 주소"],
+        event_info["이벤트 시작 날짜"],
+        event_info["이벤트 끝 날짜"],
+        event_info["이벤트 제목"],
+        event_info["편의점"]
+    ))
+    count = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+    return count > 0
+
+def save_to_d<CONFIG:SLACK_TOKEN>(event_info):
+    """데이터 저장"""
+    if is_event_exists(event_info):
+        <CONFIG:SLACK_APP_TOKEN>rint(f"⏭ 이미 존재하는 이벤트: {event_info['이벤트 제목']}, 저장 생략")
+        return
+
+    conn = connect_d<CONFIG:SLACK_TOKEN>()
+    cursor = conn.cursor()
+    insert_sql = """
+    INSERT INTO event_img (img_url, start_date, end_date, event_title, store_ty<CONFIG:SLACK_APP_TOKEN>e, idx)
+    VALUES (%s, %s, %s, %s, %s, 0)
+    """
+    cursor.execute(insert_sql, (
+        event_info["이미지 주소"],
+        event_info["이벤트 시작 날짜"],
+        event_info["이벤트 끝 날짜"],
+        event_info["이벤트 제목"],
+        event_info["편의점"]
+    ))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    <CONFIG:SLACK_APP_TOKEN>rint(f"✅ 이벤트 저장 완료: {event_info['이벤트 제목']}")
+
+def scra<CONFIG:SLACK_APP_TOKEN>e_event_<CONFIG:SLACK_APP_TOKEN>age():
+    """이벤트 상세 페이지 크롤링"""
+    try:
+        title = driver.find_element(By.CSS_SELECTOR, ".tit_sect h3.tit strong").text
+        start_date = driver.find_element(By.ID, "event-start-date").text
+        end_date = driver.find_element(By.ID, "event-end-date").text
+        image_url = driver.find_element(By.CSS_SELECTOR, ".event-we<CONFIG:SLACK_TOKEN>-contents img").get_attri<CONFIG:SLACK_TOKEN>ute("src")
+
+        event_info = {
+            "이벤트 제목": title,
+            "이벤트 시작 날짜": start_date,
+            "이벤트 끝 날짜": end_date,
+            "이미지 주소": image_url,
+            "편의점": "GS25"
+        }
+
+        save_to_d<CONFIG:SLACK_TOKEN>(event_info)  # DB 저장
+    exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+        <CONFIG:SLACK_APP_TOKEN>rint("Error scra<CONFIG:SLACK_APP_TOKEN>ing event <CONFIG:SLACK_APP_TOKEN>age:", e)
+
+def scra<CONFIG:SLACK_APP_TOKEN>e_gs25_events():
+    """GS25 이벤트 첫 페이지 크롤링 (한 페이지만)"""
+    driver.get(<CONFIG:SLACK_TOKEN>ase_url)
+    time.slee<CONFIG:SLACK_APP_TOKEN>(3)
+
+    event_list = driver.find_elements(By.CSS_SELECTOR, ".t<CONFIG:SLACK_TOKEN>lwra<CONFIG:SLACK_APP_TOKEN> t<CONFIG:SLACK_TOKEN>ody tr")
+    
+    if not event_list:
+        <CONFIG:SLACK_APP_TOKEN>rint("⚠ 이벤트 없음. 크롤링 종료")
+        return
+    
+    for i in range(len(event_list)):
+        try:
+            driver.get(<CONFIG:SLACK_TOKEN>ase_url)
+            time.slee<CONFIG:SLACK_APP_TOKEN>(3)
+
+            event_list = driver.find_elements(By.CSS_SELECTOR, ".t<CONFIG:SLACK_TOKEN>lwra<CONFIG:SLACK_APP_TOKEN> t<CONFIG:SLACK_TOKEN>ody tr")
+
+            # 특정 행에 링크가 없으면 건너뛰기
+            event_links = event_list[i].find_elements(By.CSS_SELECTOR, "td.ft_lt a")  
+            if not event_links:
+                <CONFIG:SLACK_APP_TOKEN>rint(f"⚠ {i+1}번째 이벤트에 링크가 없음, 건너뜀")
+                continue  
+
+            event_link = event_links[0]  # 첫 번째 링크 클릭
+            event_link.click()
+            time.slee<CONFIG:SLACK_APP_TOKEN>(3)
+
+            scra<CONFIG:SLACK_APP_TOKEN>e_event_<CONFIG:SLACK_APP_TOKEN>age()  # 데이터 크롤링 및 저장
+
+            driver.<CONFIG:SLACK_TOKEN>ack()
+            time.slee<CONFIG:SLACK_APP_TOKEN>(3)
+
+        exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+            <CONFIG:SLACK_APP_TOKEN>rint(f"❌ Error <CONFIG:SLACK_APP_TOKEN>rocessing event {i+1}: {e}")
+    <CONFIG:SLACK_APP_TOKEN>rint("✅ 크롤링 완료.")
+
+# 1️⃣ 강제 실행 (테스트용)
+# scra<CONFIG:SLACK_APP_TOKEN>e_gs25_events()
+
+# # 2️⃣ 자동 실행 (매일 밤 12시)
+schedule.every().day.at("11:30").do(scra<CONFIG:SLACK_APP_TOKEN>e_gs25_events)
+
+while True:
+    schedule.run_<CONFIG:SLACK_APP_TOKEN>ending()
+    time.slee<CONFIG:SLACK_APP_TOKEN>(60)  # 1분마다 스케줄 확인

@@ -1,0 +1,250 @@
+@font-face {
+	font-family: "regular";
+	font-style: normal;
+	src: url(../font/NotoSansKR-Regular.ttf) format('truetype');
+}
+
+
+@font-face {
+	font-family: "black";
+	font-style: normal;
+	src: url(../font/NotoSansKR-Black.ttf) format('truetype');
+}
+
+
+
+:root{
+   --color-main:blue;
+   --w-page:1050px;
+}
+
+body{
+   background: #fff;
+   font-size: 14px;
+   padding: 0px;
+   margin: 0px;
+   font-family: "regular";
+}
+
+input, button, select, textarea{
+   font-family: "regular";
+}
+
+
+header{
+   width: 100%;
+   height: 60px;
+   background: #fff;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+header > .inner{
+   width: var(--w-page);
+   height: 100%;
+   background: #fff;
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+}
+
+
+header img.logo{
+   height: 33%;
+   margin-right: 0px;
+}
+
+header .menu-item{
+   margin-left: 28px;
+   font-weight: 700;
+   color: #999;
+   cursor: pointer;
+}
+
+header .menu-item:hover{
+   color: var(--color-main);
+}
+
+
+
+
+.top-container{
+   width: 100%;
+   height: 450px;
+   background: red;
+   position: relative;
+}
+
+.top-container > img{
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+}
+
+.top-container .overlay-container{
+   width: 100%;
+   height: 100%;
+   background: rgba(0,0,0,0.4);
+   position: absolute;
+   top: 0;
+   left: 0;
+   color:#fff;
+   font-weight: 700;
+   font-size: 28px;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+}
+
+
+.section{
+   width: 100%;
+   padding: 50px;
+}
+
+.section > .inner{
+   width: var(--w-page);
+   margin: 0 auto;
+}
+
+
+.card-room{
+   padding: 10px;
+   box-sizing: border-box;
+}
+
+.my-card{
+   width: 100%;
+   background: #fff;
+   display: flex;
+   flex-direction: column;
+}
+
+.my-card > img {
+   width: 100%;
+   height: 200px;
+   object-fit: cover;
+   border-radius: 4px;
+}
+
+.my-card  .t1{
+   color:#222;
+   font-weight: 700;
+   font-size: 16px;
+   margin-top: 10px;
+}
+
+.my-card  .t2{
+   color:#585858;
+   font-weight: 700;
+   font-size: 15px;
+   margin-bottom: 3px;
+}
+
+.my-card  p{
+   color:#999;
+   font-size: 13px;
+}
+
+.my-card button{
+   background: #222;
+   color: #fff;
+   font-size: 14px;
+   font-weight: 700;
+   outline: none;
+   border: 1px solid #dedede;
+   border-radius: 6px;
+   padding: 8px;
+   cursor: pointer;
+}
+
+.my-card button > i{
+   font-size: 13px;
+   margin-right: 8px;
+}
+
+.my-card button:hover{
+   background: #000;
+}
+
+
+.info-card{
+   display: flex;
+   flex-direction: column;
+   color:#585858;
+   margin-right: 100px;
+}
+
+.info-card .t{
+   color:#000;
+   font-weight: 700;
+   font-size: 16px;
+   margin-bottom: 10px;
+}
+
+
+
+.center-body{
+	width:100%;
+	display: flex;
+	justify-content: center;
+}
+
+
+.form-container{
+	width:400px;
+	background: #fff;
+	margin-top:100px;
+	border:1px solid #dedede;
+	border-radius:10px;
+	padding-top:20px;
+	padding-left:16px;
+	padding-right:16px;
+	padding-bottom: 20px;
+	/* display: flex;
+	justify-content:center; */
+}
+
+
+
+.form-container input{
+	width: 100%;
+	padding:6px;
+	outline: none;
+	border:1px solid #dedede;
+	border-radius:6px;
+	margin-bottom:10px;
+}
+
+.form-container input:focus{
+	border:1px solid red;
+}
+
+
+.form-container select{
+	width: 100%;
+	padding:6px;
+	border-radius:6px;
+	border:1px solid #dedede;
+}
+
+
+
+
+.form-container .submit-btn{
+	width:100%;
+	padding:8px;
+	margin-top:30px;
+	border-radius: 6px;
+	background: #222;
+	color:#fff;
+	font-weight:700;
+}
+
+
+.form-container .submit-btn:hover{
+	background: #000;
+}
+

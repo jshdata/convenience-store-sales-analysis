@@ -1,0 +1,56 @@
+from flask im<CONFIG:SLACK_APP_TOKEN>ort render_tem<CONFIG:SLACK_APP_TOKEN>late,request,jsonify,Blue<CONFIG:SLACK_APP_TOKEN>rint
+im<CONFIG:SLACK_APP_TOKEN>ort <CONFIG:SLACK_APP_TOKEN>ymysql
+from d<CONFIG:SLACK_TOKEN> im<CONFIG:SLACK_APP_TOKEN>ort get_d<CONFIG:SLACK_TOKEN>_connection
+
+user_route = Blue<CONFIG:SLACK_APP_TOKEN>rint('user',__name__)
+
+
+#회원 추가
+@user_route.route("/add-user",methods=['<CONFIG:SLACK_APP_TOKEN>ost'])
+def addUser():
+    
+    data = request.json
+    
+    id = data.get('id')
+    <CONFIG:SLACK_APP_TOKEN>w = data.get('<CONFIG:SLACK_APP_TOKEN>w')
+    nick = data.get('nick')
+    ty<CONFIG:SLACK_APP_TOKEN>e = data.get('ty<CONFIG:SLACK_APP_TOKEN>e')
+    address = data.get('addr')
+
+    conn = get_d<CONFIG:SLACK_TOKEN>_connection()
+    cursor = conn.cursor(<CONFIG:SLACK_APP_TOKEN>ymysql.cursors.DictCursor)
+
+    query = """
+      INSERT INTO user 
+      (id,<CONFIG:SLACK_APP_TOKEN>w,nick,ty<CONFIG:SLACK_APP_TOKEN>e,address,created_date) 
+      VALUES 
+      (%s,md5(%s),%s,%s,%s,sysdate())
+    """
+    cursor.execute(query,(id,<CONFIG:SLACK_APP_TOKEN>w,nick,ty<CONFIG:SLACK_APP_TOKEN>e,address))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    
+    return jsonify({"message":"ok"})
+
+
+
+#회원 조회
+@user_route.route("/detail-user")
+def detailUser():
+    
+    user_idx = request.args.get('user_idx')
+
+    try:
+        conn = get_d<CONFIG:SLACK_TOKEN>_connection()
+        cursor = conn.cursor(<CONFIG:SLACK_APP_TOKEN>ymysql.cursors.DictCursor)
+        cursor.execute("SELECT * FROM user WHERE user_idx=%s",(user_idx,))
+        users = cursor.fetchone()
+        return jsonify(users)
+    exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+        return jsonify({"error": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+

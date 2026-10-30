@@ -1,0 +1,331 @@
+[
+  {
+    "original": "all.xlsx",
+    "current": "data/raw/sales/all.xlsx",
+    "sha256": "90a2d11452ceb70fbb6b58c915fb251ac2280fd25c3ec0c6e89620107e6953b3",
+    "content_preserved": true
+  },
+  {
+    "original": "sale_gender_age.xlsx",
+    "current": "data/raw/sales/sale_gender_age.xlsx",
+    "sha256": "c795b070122d60c8ea1fe9b9cb74a81a559dc1bc28a643bb47d8bcaf159e22e2",
+    "content_preserved": true
+  },
+  {
+    "original": "cu.csv",
+    "current": "data/raw/youtube/cu_videos.csv",
+    "sha256": "f49792d35ea996afd074e659e454e0a0c7f72d830e9737d37c84c36cbcfed76a",
+    "content_preserved": true
+  },
+  {
+    "original": "gs25.csv",
+    "current": "data/raw/youtube/gs25_videos.csv",
+    "sha256": "b97632c747be58d5df7f6b99ebe751960f6b1917de775d7184b7bd6742edb72c",
+    "content_preserved": true
+  },
+  {
+    "original": "7_1.csv",
+    "current": "data/raw/youtube/seven_videos.csv",
+    "sha256": "4c4b50a7f99bd3302fa2a9416af9ab7d6ea8218bfec6c0aef21354427e88d687",
+    "content_preserved": true
+  },
+  {
+    "original": "cu_table.csv",
+    "current": "data/raw/youtube/cu_channels.csv",
+    "sha256": "0fd645f52a8e63513a70beb0f18c926821d25782ed385006ff77720f5c099e2f",
+    "content_preserved": true
+  },
+  {
+    "original": "gs25_table.csv",
+    "current": "data/raw/youtube/gs25_channels.csv",
+    "sha256": "1f46ecccfaf288bb59d2883b3f1bfc171de96ef2c93a8faa5e7f415a753919a8",
+    "content_preserved": true
+  },
+  {
+    "original": "gs25_1.csv",
+    "current": "data/interim/youtube/gs25_videos_with_store.csv",
+    "sha256": "1db37ad899bb5dcbb22a51db4ad50122c06d57fa4cfef04622b64c55778b0ada",
+    "content_preserved": true
+  },
+  {
+    "original": "3store_data.CSV",
+    "current": "data/interim/events/three_store_events.csv",
+    "sha256": "1788ceec5146177550ef78bf85507ff0df4ab45a23ec4621d186f3c344fc9d88",
+    "content_preserved": true
+  },
+  {
+    "original": "trend_data2.csv",
+    "current": "data/raw/search_trends/trend_data2.csv",
+    "sha256": "481127aba92e8c242654ae7f9af85fcc0a522942089e63f71587f5e55b903229",
+    "content_preserved": true
+  },
+  {
+    "original": "중복된 video_id.xlsx",
+    "current": "data/reference/duplicate_video_ids.xlsx",
+    "sha256": "7ef421252e5df36477b558e05bc901ac7371bbccd22becd9b868be912730ff9e",
+    "content_preserved": true
+  },
+  {
+    "original": "last_insert_date.txt",
+    "current": "archive/simulation/state/sales_last_insert_date.txt",
+    "sha256": "14973c591b26d5116b3ce3508c60adfe345a1201723a45f18dacc0293da2ec7a",
+    "content_preserved": true
+  },
+  {
+    "original": "last_insert_date_naver.txt",
+    "current": "archive/simulation/state/search_trends_last_insert_date.txt",
+    "sha256": "14973c591b26d5116b3ce3508c60adfe345a1201723a45f18dacc0293da2ec7a",
+    "content_preserved": true
+  },
+  {
+    "original": "final.py",
+    "current": "archive/prediction/combined_prediction_bot.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "Core Slack extracted; prediction archived"
+  },
+  {
+    "original": "slack.py",
+    "current": "archive/prediction/prediction_bot.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable."
+  },
+  {
+    "original": "sale_schedule.py",
+    "current": "archive/simulation/replay_sales_daily.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "cv_store/ingestion/sales.py (full-file ingestion; simulation archived)"
+  },
+  {
+    "original": "naver_schedule.py",
+    "current": "archive/simulation/replay_search_trends_daily.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "cv_store/ingestion/search_trends.py (full-file ingestion)"
+  },
+  {
+    "original": "csvtodb.py",
+    "current": "archive/simulation/seed_sales_before_2025.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "cv_store/ingestion/sales.py (full-file ingestion)"
+  },
+  {
+    "original": "sale_slack.py",
+    "current": "archive/legacy/sales_slack_bot.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "cv_store/integrations/slack/ + cv_store/analysis/ + cv_store/database/"
+  },
+  {
+    "original": "webcrollingtwo.py",
+    "current": "archive/collectors/gs25_paginated.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable."
+  },
+  {
+    "original": "cu.py",
+    "current": "archive/collectors/cu_historical_csv.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable."
+  },
+  {
+    "original": "as.py",
+    "current": "archive/experiments/naver_shopping_api.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable."
+  },
+  {
+    "original": "cl.py",
+    "current": "archive/experiments/pyony_cu_sample.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable."
+  },
+  {
+    "original": "crawl.py",
+    "current": "archive/experiments/selenium_smoke.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable."
+  },
+  {
+    "original": "CU_schedule.py",
+    "current": "archive/legacy/CU_schedule.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "cv_store/collectors/cu_events.py + cv_store/jobs/collect_events.py"
+  },
+  {
+    "original": "GS25_schedule.py",
+    "current": "archive/legacy/GS25_schedule.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "cv_store/collectors/gs25_events.py + cv_store/jobs/collect_events.py"
+  },
+  {
+    "original": "seven_schedule.py",
+    "current": "archive/legacy/seven_schedule.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "cv_store/collectors/seven_events.py + cv_store/jobs/collect_events.py"
+  },
+  {
+    "original": "plus_schedule.py",
+    "current": "archive/legacy/plus_schedule.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "cv_store/collectors/promotions.py + cv_store/jobs/collect_events.py"
+  },
+  {
+    "original": "app.py",
+    "current": "archive/legacy/app.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "cv_store/web/app.py (JSON API only)"
+  },
+  {
+    "original": "db.py",
+    "current": "archive/legacy/db.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable.",
+    "active_replacement": "cv_store/database/connection.py"
+  },
+  {
+    "original": "routes/__init__.py",
+    "current": "archive/legacy/routes___init__.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable."
+  },
+  {
+    "original": "routes/view_route.py",
+    "current": "archive/legacy/routes_view_route.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable."
+  },
+  {
+    "original": "routes/user_route.py",
+    "current": "archive/legacy/routes_user_route.py.txt",
+    "content_preserved": false,
+    "note": "Historical source; configuration literals redacted; not executable."
+  },
+  {
+    "original": "routes/__pycache__/ai_route.cpython-311.pyc",
+    "sha256": "21484dc9ae72a222d3045702615984f495142b589a80778f1adfc7d9a283d726",
+    "content_preserved": false,
+    "previous_archive": "archive/cache/ai_route.cpython-311.pyc",
+    "current": null,
+    "status": "deleted",
+    "note": "Removed historical bytecode to avoid retaining old credentials; unused by current service."
+  },
+  {
+    "original": "routes/__pycache__/ai_route.cpython-313.pyc",
+    "sha256": "cf3eb206c8934801858d746b3a13825cc6f7a73319ad8918fabb27c6278e9d87",
+    "content_preserved": false,
+    "previous_archive": "archive/cache/ai_route.cpython-313.pyc",
+    "current": null,
+    "status": "deleted",
+    "note": "Removed historical bytecode to avoid retaining old credentials; unused by current service."
+  },
+  {
+    "original": "routes/__pycache__/user_route.cpython-311.pyc",
+    "sha256": "89e5103ac86bbb0972ae09eb60fb4cf7106cee9f02a9adf324232d360343f632",
+    "content_preserved": false,
+    "previous_archive": "archive/cache/user_route.cpython-311.pyc",
+    "current": null,
+    "status": "deleted",
+    "note": "Removed historical bytecode to avoid retaining old credentials; unused by current service."
+  },
+  {
+    "original": "routes/__pycache__/user_route.cpython-313.pyc",
+    "sha256": "98245110c8c0b9ce1a7dc52a644c0b7fc7a209dea721191531351451f3cce49e",
+    "content_preserved": false,
+    "previous_archive": "archive/cache/user_route.cpython-313.pyc",
+    "current": null,
+    "status": "deleted",
+    "note": "Removed historical bytecode to avoid retaining old credentials; unused by current service."
+  },
+  {
+    "original": "routes/__pycache__/view_route.cpython-311.pyc",
+    "sha256": "f0c25702dab882a17924187d89fec8f4e4a3dfdd13e6ee0a5a9f8da8a93ebab2",
+    "content_preserved": false,
+    "previous_archive": "archive/cache/view_route.cpython-311.pyc",
+    "current": null,
+    "status": "deleted",
+    "note": "Removed historical bytecode to avoid retaining old credentials; unused by current service."
+  },
+  {
+    "original": "routes/__pycache__/view_route.cpython-313.pyc",
+    "sha256": "16f639ae3ffcc757889516282edca1fd3e65ad9a68482452c2419c647e9edc36",
+    "content_preserved": false,
+    "previous_archive": "archive/cache/view_route.cpython-313.pyc",
+    "current": null,
+    "status": "deleted",
+    "note": "Removed historical bytecode to avoid retaining old credentials; unused by current service."
+  },
+  {
+    "original": "routes/__pycache__/__init__.cpython-311.pyc",
+    "sha256": "7da39f70de88f88ff0f6de8bc2e8681cd76123b7b1da32948a01187ebca19d9a",
+    "content_preserved": false,
+    "previous_archive": "archive/cache/__init__.cpython-311.pyc",
+    "current": null,
+    "status": "deleted",
+    "note": "Removed historical bytecode to avoid retaining old credentials; unused by current service."
+  },
+  {
+    "original": "routes/__pycache__/__init__.cpython-313.pyc",
+    "sha256": "f5aa305bdeb37ce48eefad235a213dfac62947305fe14306a599a8a25cb12337",
+    "content_preserved": false,
+    "previous_archive": "archive/cache/__init__.cpython-313.pyc",
+    "current": null,
+    "status": "deleted",
+    "note": "Removed historical bytecode to avoid retaining old credentials; unused by current service."
+  },
+  {
+    "original": "templates/index.html",
+    "current": "archive/web_prototype/templates/index.html",
+    "content_preserved": true,
+    "sha256": "b2f654d050556f9290d193eb910c1ce237b2aebb25aa3fbdb4657e2b5aa9d339"
+  },
+  {
+    "original": "templates/save-user.html",
+    "current": "archive/web_prototype/templates/save-user.html",
+    "content_preserved": true,
+    "sha256": "1cc8ec54e8ab6b52bbddba418dc2613f0e12c11574a0ad4e03dc4497feb1439f"
+  },
+  {
+    "original": "static/css/bootstrap.css",
+    "current": "archive/web_prototype/static/css/bootstrap.css",
+    "content_preserved": true,
+    "sha256": "0b39840abb5757c05293ffbc486f91c3b16bfb7842b766d2d9b1244b8603dcf4"
+  },
+  {
+    "original": "static/css/bootstrap.min.css",
+    "current": "archive/web_prototype/static/css/bootstrap.min.css",
+    "content_preserved": true,
+    "sha256": "b0a21045f42b8884ae43d97fe386f5cc77d09e21972611a89d5b41d8b952b88b"
+  },
+  {
+    "original": "static/css/style.css",
+    "current": "archive/web_prototype/static/css/style.css",
+    "content_preserved": true,
+    "sha256": "a2771a378d24809399fa8dd8421c7caa0e3831fed11ef7e1b0da0aeeeca2f60a"
+  },
+  {
+    "original": "static/font/NotoSansKR-Regular.ttf",
+    "current": "archive/web_prototype/static/font/NotoSansKR-Regular.ttf",
+    "content_preserved": true,
+    "sha256": "9db318b65ee9c575a43e7efd273dbdd1afef26e467eea3e1073a50e1a6595f6d"
+  },
+  {
+    "original": "static/font/NotoSansKR-Black.ttf",
+    "current": "archive/web_prototype/static/font/NotoSansKR-Black.ttf",
+    "content_preserved": true,
+    "sha256": "2962ade862022932da7dae38a72b4e78fa8494853a9c5535e558bc807f6b0adf"
+  },
+  {
+    "original": "static/js/save-user.js",
+    "current": "archive/web_prototype/static/js/save-user.js",
+    "content_preserved": false,
+    "note": "Removed password console logging; otherwise preserved."
+  }
+]

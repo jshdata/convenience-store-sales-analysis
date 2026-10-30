@@ -1,0 +1,27 @@
+# Credentials: example is intentionally tracked.
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+runtime/
+outputs/
+models/
+*.log
+# Historical bytecode was removed; do not reintroduce it.
+archive/cache/
+# Keep raw/private datasets and historical runtime state local.
+/data/*
+!/data/README.md
+/archive/simulation/state/
+/backups/
+*.sql.gz
+*.dump
+.DS_Store
+Thumbs.db

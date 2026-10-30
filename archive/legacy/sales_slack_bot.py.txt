@@ -1,0 +1,469 @@
+im<CONFIG:SLACK_APP_TOKEN>ort mysql.connector
+im<CONFIG:SLACK_APP_TOKEN>ort schedule
+im<CONFIG:SLACK_APP_TOKEN>ort time
+im<CONFIG:SLACK_APP_TOKEN>ort threading
+from datetime im<CONFIG:SLACK_APP_TOKEN>ort datetime, timedelta
+from slack_sdk im<CONFIG:SLACK_APP_TOKEN>ort We<CONFIG:SLACK_TOKEN>Client
+from slack_<CONFIG:SLACK_TOKEN>olt im<CONFIG:SLACK_APP_TOKEN>ort A<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>
+from slack_<CONFIG:SLACK_TOKEN>olt.ada<CONFIG:SLACK_APP_TOKEN>ter.socket_mode im<CONFIG:SLACK_APP_TOKEN>ort SocketModeHandler
+im<CONFIG:SLACK_APP_TOKEN>ort re
+im<CONFIG:SLACK_APP_TOKEN>ort <CONFIG:SLACK_APP_TOKEN>andas as <CONFIG:SLACK_APP_TOKEN>d
+
+# 🟦 Slack API Token 설정
+slack_token = "<CONFIG:SLACK_TOKEN>"
+slack_a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>_token = "<CONFIG:SLACK_APP_TOKEN>"
+client = We<CONFIG:SLACK_TOKEN>Client(token=slack_token)
+
+# 🟦 MySQL 연결 설정
+conn = mysql.connector.connect(
+    host='<CONFIG:DB_HOST>',
+    <CONFIG:SLACK_APP_TOKEN>ort=3306,
+    user='<CONFIG:DB_USER>',
+    <CONFIG:SLACK_APP_TOKEN>assword='<CONFIG:DB_PASSWORD>',
+    data<CONFIG:SLACK_TOKEN>ase='crawling',
+    charset='utf8m<CONFIG:SLACK_TOKEN>4'
+)
+# 🟦 Slack 앱 초기화
+a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN> = A<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>(token=slack_token)
+
+
+# 🟦 채널 ID 설정
+GS25_CHANNEL_ID = "<CONFIG:GS25_CHANNEL_ID>"
+CU_CHANNEL_ID = "<CONFIG:CU_CHANNEL_ID>"
+SEVEN_CHANNEL_ID = "<CONFIG:SEVEN_CHANNEL_ID>"
+YOUTUBE_CHANNEL_ID = "<CONFIG:YOUTUBE_CHANNEL_ID>"
+NAVER_NEWS_CHANNEL_ID = "<CONFIG:NAVER_NEWS_CHANNEL_ID>"
+ALERT_CHANNEL_ID = "<CONFIG:ALERT_CHANNEL_ID>"  # 매출 이상 경고 채널
+
+# 🟦 편의점 채널 매핑
+store_ma<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>ing = {
+    GS25_CHANNEL_ID: "GS25",
+    CU_CHANNEL_ID: "CU",
+    SEVEN_CHANNEL_ID: "seven"
+}
+
+# 🟦 매출 이상 감지 기준 (growth_deviation 기준)
+ANOMALY_THRESHOLDS = {
+    "CU": {"high": 1.252, "low": -1.344},
+    "GS25": {"high": 1.135, "low": -1.461},
+    "seven": {"high": 1.394, "low": -1.374},
+}
+
+# 🟦 특정 날짜의 유튜브 및 네이버 뉴스 기사 조회 (최대 3개만 먼저 반환)
+def get_yt<CONFIG:SLACK_TOKEN>_links_<CONFIG:SLACK_TOKEN>y_date_and_store(date, store_ty<CONFIG:SLACK_APP_TOKEN>e):
+    query = f"""
+        SELECT video_url FROM yt<CONFIG:SLACK_TOKEN>_video
+        WHERE store_ty<CONFIG:SLACK_APP_TOKEN>e = '{store_ty<CONFIG:SLACK_APP_TOKEN>e}' AND <CONFIG:SLACK_APP_TOKEN>u<CONFIG:SLACK_TOKEN>lished_at LIKE '{date}%';
+    """
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(query)
+    data = cursor.fetchall()
+    cursor.close()
+    
+    return [row["video_url"] for row in data] if data else []  # 리스트로 변환하여 반환
+
+
+# 🟦 특정 날짜의 네이버 뉴스 기사 조회 (최대 3개만 먼저 반환)
+def get_news_links_<CONFIG:SLACK_TOKEN>y_date_and_store(date, store_ty<CONFIG:SLACK_APP_TOKEN>e):
+    query = f"""
+        SELECT news_url FROM news_search
+        WHERE store_ty<CONFIG:SLACK_APP_TOKEN>e = '{store_ty<CONFIG:SLACK_APP_TOKEN>e}' AND news_date LIKE '{date}%';
+    """
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(query)
+    data = cursor.fetchall()
+    cursor.close()
+    
+    return [row["news_url"] for row in data] if data else []
+
+
+# 🟦 백테스트 시작 날짜 (2024년 10월 3일부터 시작)
+simulation_date = datetime(2024, 10, 6)
+
+def format_news_links(news_links, date, store_ty<CONFIG:SLACK_APP_TOKEN>e):
+    """처음 3개 뉴스 링크만 출력하고, 더보기 버튼을 추가하는 함수"""
+    if not news_links:
+        return "📰 관련 뉴스가 없습니다.", None
+
+    to<CONFIG:SLACK_APP_TOKEN>_news = "\n".join(news_links[:3])  # 처음 3개를 문자열로 변환
+    more_news = news_links[3:]  # 나머지 뉴스 링크는 더보기 버튼을 통해 출력
+
+    message = f"📰 관련 뉴스:\n{to<CONFIG:SLACK_APP_TOKEN>_news}"
+    
+    # 더보기 버튼 추가
+    attachments = None
+    if more_news:
+        attachments = [
+            {
+                "<CONFIG:SLACK_TOKEN>locks": [
+                    {
+                        "ty<CONFIG:SLACK_APP_TOKEN>e": "actions",
+                        "elements": [
+                            {
+                                "ty<CONFIG:SLACK_APP_TOKEN>e": "<CONFIG:SLACK_TOKEN>utton",
+                                "text": {"ty<CONFIG:SLACK_APP_TOKEN>e": "<CONFIG:SLACK_APP_TOKEN>lain_text", "text": "뉴스 더보기"},
+                                "action_id": "show_more_news",
+                                "value": f"{date}|{store_ty<CONFIG:SLACK_APP_TOKEN>e}"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    return message, attachments
+
+
+def format_yt<CONFIG:SLACK_TOKEN>_links(yt<CONFIG:SLACK_TOKEN>_links, date, store_ty<CONFIG:SLACK_APP_TOKEN>e):
+    """처음 3개 유튜브 링크만 출력하고, 더보기 버튼을 추가하는 함수"""
+    if not yt<CONFIG:SLACK_TOKEN>_links:
+        return "🎬 관련 유튜브 영상이 없습니다.", None
+
+    to<CONFIG:SLACK_APP_TOKEN>_yt<CONFIG:SLACK_TOKEN> = "\n".join(yt<CONFIG:SLACK_TOKEN>_links[:3])  # 리스트 → 문자열 변환
+    more_yt<CONFIG:SLACK_TOKEN> = yt<CONFIG:SLACK_TOKEN>_links[3:]  # 나머지 유튜브 링크는 더보기 버튼을 통해 출력
+
+    message = f"🎬 관련 유튜브 영상:\n{to<CONFIG:SLACK_APP_TOKEN>_yt<CONFIG:SLACK_TOKEN>}"
+    
+    # 더보기 버튼 추가
+    attachments = None
+    if more_yt<CONFIG:SLACK_TOKEN>:
+        attachments = [
+            {
+                "<CONFIG:SLACK_TOKEN>locks": [
+                    {
+                        "ty<CONFIG:SLACK_APP_TOKEN>e": "actions",
+                        "elements": [
+                            {
+                                "ty<CONFIG:SLACK_APP_TOKEN>e": "<CONFIG:SLACK_TOKEN>utton",
+                                "text": {"ty<CONFIG:SLACK_APP_TOKEN>e": "<CONFIG:SLACK_APP_TOKEN>lain_text", "text": "유튜브 더보기"},
+                                "action_id": "show_more_yt<CONFIG:SLACK_TOKEN>",
+                                "value": f"{date}|{store_ty<CONFIG:SLACK_APP_TOKEN>e}"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    return message, attachments
+
+
+def format_yt<CONFIG:SLACK_TOKEN>_links(yt<CONFIG:SLACK_TOKEN>_links, date, store_ty<CONFIG:SLACK_APP_TOKEN>e):
+    """처음 3개 유튜브 링크만 출력하고, 더보기 버튼을 추가하는 함수"""
+    if not yt<CONFIG:SLACK_TOKEN>_links:
+        return "🎬 관련 유튜브 영상이 없습니다.", None
+
+    to<CONFIG:SLACK_APP_TOKEN>_yt<CONFIG:SLACK_TOKEN> = yt<CONFIG:SLACK_TOKEN>_links[:3]  # 처음 3개만 출력
+    more_yt<CONFIG:SLACK_TOKEN> = yt<CONFIG:SLACK_TOKEN>_links[3:]  # 나머지 유튜브 링크는 더보기 버튼을 통해 출력
+
+    message = "🎬 관련 유튜브 영상:\n" + "\n".join(to<CONFIG:SLACK_APP_TOKEN>_yt<CONFIG:SLACK_TOKEN>)
+    
+    # 더보기 버튼 추가
+    attachments = None
+    if more_yt<CONFIG:SLACK_TOKEN>:
+        attachments = [
+            {
+                "<CONFIG:SLACK_TOKEN>locks": [
+                    {
+                        "ty<CONFIG:SLACK_APP_TOKEN>e": "actions",
+                        "elements": [
+                            {
+                                "ty<CONFIG:SLACK_APP_TOKEN>e": "<CONFIG:SLACK_TOKEN>utton",
+                                "text": {"ty<CONFIG:SLACK_APP_TOKEN>e": "<CONFIG:SLACK_APP_TOKEN>lain_text", "text": "유튜브 더보기"},
+                                "action_id": "show_more_yt<CONFIG:SLACK_TOKEN>",
+                                "value": f"{date}|{store_ty<CONFIG:SLACK_APP_TOKEN>e}"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    return message, attachments
+
+def detect_sales_anomalies():
+    glo<CONFIG:SLACK_TOKEN>al simulation_date
+    today_str = simulation_date.strftime("%Y-%m-%d")
+
+    <CONFIG:SLACK_APP_TOKEN>rint(f"🔍 [LOG] {today_str} 매출 이상 감지 체크 중...")
+
+    query = f"""
+        SELECT sale_date, store_ty<CONFIG:SLACK_APP_TOKEN>e, sum_amount, growth_deviation
+        FROM all_sale
+        WHERE sale_date = '{today_str}';
+    """
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(query)
+    data = cursor.fetchall()
+    cursor.close()
+
+    if not data:
+        <CONFIG:SLACK_APP_TOKEN>rint(f"⚠️ [LOG] {today_str} 데이터 없음")
+        return
+
+    for row in data:
+        store = row["store_ty<CONFIG:SLACK_APP_TOKEN>e"]
+        deviation = row["growth_deviation"]
+
+        <CONFIG:SLACK_APP_TOKEN>rint(f"🔎 [DEBUG] {today_str} {store}: growth_deviation={deviation:.2f}")
+
+        if store in ANOMALY_THRESHOLDS:
+            yt<CONFIG:SLACK_TOKEN>_links = get_yt<CONFIG:SLACK_TOKEN>_links_<CONFIG:SLACK_TOKEN>y_date_and_store(today_str, store)
+            news_links = get_news_links_<CONFIG:SLACK_TOKEN>y_date_and_store(today_str, store)
+
+            yt<CONFIG:SLACK_TOKEN>_message, yt<CONFIG:SLACK_TOKEN>_attachments = format_yt<CONFIG:SLACK_TOKEN>_links(yt<CONFIG:SLACK_TOKEN>_links, today_str, store)
+            news_message, news_attachments = format_news_links(news_links, today_str, store)
+
+            if deviation >= ANOMALY_THRESHOLDS[store]["high"]:
+                msg = (
+                    f"🚨 {today_str} {store} 매출 급등 감지!\n"
+                    f"💰 매출액: {row['sum_amount']:,.0f}원\n"
+                    f"📊 편차 (growth_deviation): {deviation:.2f}%\n\n"
+                    f"{yt<CONFIG:SLACK_TOKEN>_message}\n\n"
+                    f"{news_message}\n"
+                )
+
+                client.chat_<CONFIG:SLACK_APP_TOKEN>ostMessage(
+                    channel=ALERT_CHANNEL_ID,
+                    text=msg,
+                    attachments=(yt<CONFIG:SLACK_TOKEN>_attachments if yt<CONFIG:SLACK_TOKEN>_attachments else []) +
+                                (news_attachments if news_attachments else []),
+                    unfurl_links=True,
+                    unfurl_media=True
+                )
+                <CONFIG:SLACK_APP_TOKEN>rint(f"✅ [LOG] {store} 매출 급등 감지: {deviation:.2f}%")
+
+            if deviation <= ANOMALY_THRESHOLDS[store]["low"]:
+                msg = (
+                    f"⚠️ {today_str} {store} 매출 급감 감지!\n"
+                    f"💰 매출액: {row['sum_amount']:,.0f}원\n"
+                    f"📉 편차 (growth_deviation): {deviation:.2f}%\n\n"
+                    f"{yt<CONFIG:SLACK_TOKEN>_message}\n\n"
+                    f"{news_message}\n"
+                )
+
+                client.chat_<CONFIG:SLACK_APP_TOKEN>ostMessage(
+                    channel=ALERT_CHANNEL_ID,
+                    text=msg,
+                    attachments=(yt<CONFIG:SLACK_TOKEN>_attachments if yt<CONFIG:SLACK_TOKEN>_attachments else []) +
+                                (news_attachments if news_attachments else []),
+                    unfurl_links=True,
+                    unfurl_media=True
+                )
+                <CONFIG:SLACK_APP_TOKEN>rint(f"✅ [LOG] {store} 매출 급감 감지: {deviation:.2f}%")
+
+    simulation_date += timedelta(days=1)  # 날짜 증가
+
+
+
+# 🟦 백그라운드에서 1분마다 실행
+def schedule_test_check():
+    schedule.every(1).minutes.do(detect_sales_anomalies)
+    while True:
+        schedule.run_<CONFIG:SLACK_APP_TOKEN>ending()
+        time.slee<CONFIG:SLACK_APP_TOKEN>(10)
+
+# 🟦 매출 데이터 조회 함수
+def get_sales_data(date, store_ty<CONFIG:SLACK_APP_TOKEN>e):
+    query = f"""
+        SELECT sum_amount, sum_amount_growth, avg_sum_amount_growth, growth_deviation
+        FROM all_sale
+        WHERE sale_date = '{date}' AND store_ty<CONFIG:SLACK_APP_TOKEN>e = '{store_ty<CONFIG:SLACK_APP_TOKEN>e}';
+    """
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(query)
+    data = cursor.fetchone()
+    cursor.close()
+    return data
+
+# 🟦 멘션 이벤트 핸들러
+@a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>.event("a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>_mention")
+def handle_mention(event, say):
+    im<CONFIG:SLACK_APP_TOKEN>ort logging
+    logging.<CONFIG:SLACK_TOKEN>asicConfig(level=logging.DEBUG)
+    logging.de<CONFIG:SLACK_TOKEN>ug(f"📢 이벤트 감지: {event}")  # 이벤트 로그 출력
+
+    text = event.get("text", "").stri<CONFIG:SLACK_APP_TOKEN>()
+
+    # 🔹 유저 ID 제거: "<@U08B7HLEEAJ> 대시보드" → "대시보드"
+    text = re.su<CONFIG:SLACK_TOKEN>(r"<@U[A-Z0-9]+>", "", text).stri<CONFIG:SLACK_APP_TOKEN>().u<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>er()
+
+    channel_id = event.get("channel")
+
+    # 🔹 "대시보드" 명령어 처리
+    if text == "대시보드" and channel_id == "<CONFIG:SLACK_CHANNEL_ID>":
+        say(f"📊 태블로 대시보드 링크입니다: htt<CONFIG:SLACK_APP_TOKEN>s://<CONFIG:SLACK_APP_TOKEN>u<CONFIG:SLACK_TOKEN>lic.ta<CONFIG:SLACK_TOKEN>leau.com/a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>/<CONFIG:SLACK_APP_TOKEN>rofile/.70256853/viz/_17404727845250/sheet6")
+        return
+    
+    if text == "티피" and channel_id == "<CONFIG:SLACK_CHANNEL_ID>":
+        say(f"📊 태블로 TP 링크입니다: htt<CONFIG:SLACK_APP_TOKEN>s://<CONFIG:SLACK_APP_TOKEN>u<CONFIG:SLACK_TOKEN>lic.ta<CONFIG:SLACK_TOKEN>leau.com/a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>/<CONFIG:SLACK_APP_TOKEN>rofile/.70256853/viz/_17404727845250/3store_TP")
+        return
+    
+    # 🔹 입력에서 날짜 및 편의점 종류 추출
+    date_match = re.search(r"\d{4}-\d{2}-\d{2}", text)
+    store_match = re.search(r"(GS25|CU|SEVEN)", text)
+
+    # 🔹 만약 사용자가 아무것도 입력하지 않았다면
+    if not date_match and not store_match:
+        # CU, GS25, Seven 채널에서는 편의점 형식 안내 메시지 출력
+        if channel_id in store_ma<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>ing:
+            say("⚠️ 사용법: `@편의점 알리미 2024-10-02` 형식으로 입력해주세요.")
+        # 유튜브/네이버 검색 채널에서는 편의점 + 날짜 형식 안내 메시지 출력
+        elif channel_id in [YOUTUBE_CHANNEL_ID, NAVER_NEWS_CHANNEL_ID]:
+            say("⚠️ 사용법: `@편의점 알리미 GS25 2024-10-02` 형식으로 입력해주세요.")
+        return
+
+    # 🔹 날짜 추출
+    date = date_match.grou<CONFIG:SLACK_APP_TOKEN>(0) if date_match else None
+    store_ty<CONFIG:SLACK_APP_TOKEN>e = store_match.grou<CONFIG:SLACK_APP_TOKEN>(0) if store_match else None
+
+    # 🔹 채널이 올바른 경우 매출 데이터 조회
+    if channel_id in store_ma<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>ing:
+        store_ty<CONFIG:SLACK_APP_TOKEN>e = store_ma<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>ing[channel_id]
+        if date:
+            data = get_sales_data(date, store_ty<CONFIG:SLACK_APP_TOKEN>e)
+            if data:
+                res<CONFIG:SLACK_APP_TOKEN>onse = (
+                    f"📅 {date} {store_ty<CONFIG:SLACK_APP_TOKEN>e} 매출 분석 📊\n"
+                    f"💰 매출액: {data['sum_amount']:,.0f}원\n"
+                    f"📈 전날 대비 상승률: {data['sum_amount_growth']:.2f}%\n"
+                    f"📊 3사 평균 상승률: {data['avg_sum_amount_growth']:.2f}%\n"
+                    f"⚠️ 평균 대비 차이: {data['growth_deviation']:.2f}%"
+                )
+                say(res<CONFIG:SLACK_APP_TOKEN>onse)
+            else:
+                say(f"⚠️ {date}에 대한 {store_ty<CONFIG:SLACK_APP_TOKEN>e} 매출 데이터가 없습니다.")
+        else:
+            say("⚠️ 사용법: `@편의점 알리미 2024-10-02` 형식으로 입력해주세요.")
+
+
+
+    # 🔹 유튜브 검색 채널에서 실행
+    elif channel_id == YOUTUBE_CHANNEL_ID:
+        result = get_yt<CONFIG:SLACK_TOKEN>_links_<CONFIG:SLACK_TOKEN>y_date_and_store(date, store_ty<CONFIG:SLACK_APP_TOKEN>e)
+
+        if result:
+            to<CONFIG:SLACK_APP_TOKEN>_videos = result[:3]  # 상위 3개 영상 출력
+            message = f"🎬 {date} {store_ty<CONFIG:SLACK_APP_TOKEN>e} 유튜브 영상 목록 🎬\n" + "\n".join(to<CONFIG:SLACK_APP_TOKEN>_videos)
+
+            # 더보기 버튼 추가 여부 확인
+            attachments = []
+            if len(result) > 3:
+                attachments.a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>end({
+                    "<CONFIG:SLACK_TOKEN>locks": [
+                        {
+                            "ty<CONFIG:SLACK_APP_TOKEN>e": "actions",
+                            "elements": [
+                                {
+                                    "ty<CONFIG:SLACK_APP_TOKEN>e": "<CONFIG:SLACK_TOKEN>utton",
+                                    "text": {"ty<CONFIG:SLACK_APP_TOKEN>e": "<CONFIG:SLACK_APP_TOKEN>lain_text", "text": "유튜브 더보기"},
+                                    "action_id": "show_more_yt<CONFIG:SLACK_TOKEN>",
+                                    "value": f"{date}|{store_ty<CONFIG:SLACK_APP_TOKEN>e}"
+                                }
+                            ]
+                        }
+                    ]
+                })
+
+            # 메시지 전송
+            a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>.client.chat_<CONFIG:SLACK_APP_TOKEN>ostMessage(
+                channel=channel_id,
+                text=message,
+                attachments=attachments if attachments else [],
+                unfurl_links=True,
+                unfurl_media=True
+            )
+        else:
+            say(f"⚠️ {date}에 대한 {store_ty<CONFIG:SLACK_APP_TOKEN>e} 유튜브 영상이 없습니다.")
+
+    # 🔹 네이버 뉴스 검색 채널에서 실행
+    elif channel_id == NAVER_NEWS_CHANNEL_ID:
+        result = get_news_links_<CONFIG:SLACK_TOKEN>y_date_and_store(date, store_ty<CONFIG:SLACK_APP_TOKEN>e)
+
+        if result:
+            to<CONFIG:SLACK_APP_TOKEN>_news = result[:3]  # 상위 3개 뉴스 출력
+            message = f"📰 {date} {store_ty<CONFIG:SLACK_APP_TOKEN>e} 네이버 뉴스 기사 목록 📰\n" + "\n".join(to<CONFIG:SLACK_APP_TOKEN>_news)
+
+            # 더보기 버튼 추가 여부 확인
+            attachments = []
+            if len(result) > 3:
+                attachments.a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>end({
+                    "<CONFIG:SLACK_TOKEN>locks": [
+                        {
+                            "ty<CONFIG:SLACK_APP_TOKEN>e": "actions",
+                            "elements": [
+                                {
+                                    "ty<CONFIG:SLACK_APP_TOKEN>e": "<CONFIG:SLACK_TOKEN>utton",
+                                    "text": {"ty<CONFIG:SLACK_APP_TOKEN>e": "<CONFIG:SLACK_APP_TOKEN>lain_text", "text": "뉴스 더보기"},
+                                    "action_id": "show_more_news",
+                                    "value": f"{date}|{store_ty<CONFIG:SLACK_APP_TOKEN>e}"
+                                }
+                            ]
+                        }
+                    ]
+                })
+
+            # 메시지 전송
+            a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>.client.chat_<CONFIG:SLACK_APP_TOKEN>ostMessage(
+                channel=channel_id,
+                text=message,
+                attachments=attachments if attachments else [],
+                unfurl_links=True,
+                unfurl_media=True
+            )
+        else:
+            say(f"⚠️ {date}에 대한 {store_ty<CONFIG:SLACK_APP_TOKEN>e} 네이버 뉴스가 없습니다.")
+
+    else:
+        say("⚠️ 이 채널에서는 요청을 처리할 수 없습니다.")
+
+
+# 🟦 유튜브 더보기 버튼 클릭 처리
+@a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>.action("show_more_yt<CONFIG:SLACK_TOKEN>")
+def handle_show_more_yt<CONFIG:SLACK_TOKEN>(ack, <CONFIG:SLACK_TOKEN>ody, res<CONFIG:SLACK_APP_TOKEN>ond):
+    ack()
+    
+    value = <CONFIG:SLACK_TOKEN>ody['actions'][0]['value']
+    date, store_ty<CONFIG:SLACK_APP_TOKEN>e = value.s<CONFIG:SLACK_APP_TOKEN>lit("|")
+    
+    yt<CONFIG:SLACK_TOKEN>_urls = get_yt<CONFIG:SLACK_TOKEN>_links_<CONFIG:SLACK_TOKEN>y_date_and_store(date, store_ty<CONFIG:SLACK_APP_TOKEN>e)
+
+    if len(yt<CONFIG:SLACK_TOKEN>_urls) > 3:
+        more_yt<CONFIG:SLACK_TOKEN> = "\n".join(yt<CONFIG:SLACK_TOKEN>_urls[3:])  # 리스트 → 문자열 변환
+        message = f"🎬 {date} {store_ty<CONFIG:SLACK_APP_TOKEN>e} 추가 유튜브 영상 🎬\n{more_yt<CONFIG:SLACK_TOKEN>}"
+        
+        # Slack에서 링크 미리보기를 활성화하도록 설정
+        res<CONFIG:SLACK_APP_TOKEN>ond(text=message, re<CONFIG:SLACK_APP_TOKEN>lace_original=False, unfurl_links=True, unfurl_media=True)
+    else:
+        res<CONFIG:SLACK_APP_TOKEN>ond(text="⚠️ 더 이상 유튜브 영상이 없습니다.", re<CONFIG:SLACK_APP_TOKEN>lace_original=False)
+
+
+    
+# 🟦 뉴스 더보기 버튼 클릭 처리
+@a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>.action("show_more_news")
+def handle_show_more_news(ack, <CONFIG:SLACK_TOKEN>ody, res<CONFIG:SLACK_APP_TOKEN>ond):
+    ack()
+    
+    value = <CONFIG:SLACK_TOKEN>ody['actions'][0]['value']
+    date, store_ty<CONFIG:SLACK_APP_TOKEN>e = value.s<CONFIG:SLACK_APP_TOKEN>lit("|")
+    
+    news_urls = get_news_links_<CONFIG:SLACK_TOKEN>y_date_and_store(date, store_ty<CONFIG:SLACK_APP_TOKEN>e)
+    
+    if len(news_urls) > 3:
+        more_news = news_urls[3:]
+        message = f"📰 {date} {store_ty<CONFIG:SLACK_APP_TOKEN>e} 추가 뉴스 기사 📰\n" + "\n".join(more_news)
+        
+        # Slack에서 링크 미리보기를 활성화하도록 설정
+        res<CONFIG:SLACK_APP_TOKEN>ond(text=message, re<CONFIG:SLACK_APP_TOKEN>lace_original=False, unfurl_links=True, unfurl_media=True)
+    else:
+        res<CONFIG:SLACK_APP_TOKEN>ond(text="⚠️ 더 이상 뉴스 기사가 없습니다.", re<CONFIG:SLACK_APP_TOKEN>lace_original=False)
+
+
+
+# 🟦 실행
+if __name__ == "__main__":
+    # Slack 앱 실행과 동시에 스케줄러를 백그라운드에서 실행하도록 설정
+    threading.Thread(target=schedule_test_check, daemon=True).start()
+    # Slack 이벤트 핸들러 실행
+    handler = SocketModeHandler(a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>, slack_a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>_token)
+    handler.start()
+    # 메인 스레드를 유지하여 백그라운드 작업이 종료되지 않도록 함
+    while True:
+        time.slee<CONFIG:SLACK_APP_TOKEN>(1)

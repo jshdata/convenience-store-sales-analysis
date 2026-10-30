@@ -1,0 +1,179 @@
+im<CONFIG:SLACK_APP_TOKEN>ort requests
+from <CONFIG:SLACK_TOKEN>s4 im<CONFIG:SLACK_APP_TOKEN>ort BeautifulSou<CONFIG:SLACK_APP_TOKEN>
+im<CONFIG:SLACK_APP_TOKEN>ort <CONFIG:SLACK_APP_TOKEN>ymysql
+from datetime im<CONFIG:SLACK_APP_TOKEN>ort datetime
+im<CONFIG:SLACK_APP_TOKEN>ort re
+im<CONFIG:SLACK_APP_TOKEN>ort schedule
+im<CONFIG:SLACK_APP_TOKEN>ort time
+im<CONFIG:SLACK_APP_TOKEN>ort logging
+
+# 로그 설정 (로그 파일에 기록)
+logging.<CONFIG:SLACK_TOKEN>asicConfig(filename='/home/u<CONFIG:SLACK_TOKEN>untu/market/CU_schedule.log', 
+                    level=logging.DEBUG, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# 브랜드별 기본 URL 설정
+<CONFIG:SLACK_TOKEN>ase_urls = {
+    "GS25": "htt<CONFIG:SLACK_APP_TOKEN>s://<CONFIG:SLACK_APP_TOKEN>yony.com/<CONFIG:SLACK_TOKEN>rands/gs25/?<CONFIG:SLACK_APP_TOKEN>age=",
+    "CU": "htt<CONFIG:SLACK_APP_TOKEN>s://<CONFIG:SLACK_APP_TOKEN>yony.com/<CONFIG:SLACK_TOKEN>rands/cu/?<CONFIG:SLACK_APP_TOKEN>age=",
+    "Seven": "htt<CONFIG:SLACK_APP_TOKEN>s://<CONFIG:SLACK_APP_TOKEN>yony.com/<CONFIG:SLACK_TOKEN>rands/seven/?<CONFIG:SLACK_APP_TOKEN>age="
+}
+
+# HTTP 요청 헤더
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) A<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>leWe<CONFIG:SLACK_TOKEN>Kit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
+
+# DB 연결 설정
+DB_CONFIG = {
+    "host": "<CONFIG:DB_HOST>",
+    "user": "<CONFIG:DB_USER>",
+    "<CONFIG:SLACK_APP_TOKEN>assword": "<CONFIG:DB_PASSWORD>",
+    "data<CONFIG:SLACK_TOKEN>ase": "crawling",
+    "charset": "utf8m<CONFIG:SLACK_TOKEN>4"
+}
+
+# 날짜 변환 함수
+def format_u<CONFIG:SLACK_APP_TOKEN>date_date(date_str):
+    if "." in date_str:
+        current_year = datetime.now().year
+        return f"{current_year}-{date_str.re<CONFIG:SLACK_APP_TOKEN>lace('.', '-')}"
+    return date_str
+
+# 가격 변환 함수
+def format_<CONFIG:SLACK_APP_TOKEN>rice(<CONFIG:SLACK_APP_TOKEN>rice_str):
+    <CONFIG:SLACK_APP_TOKEN>rice_match = re.search(r"\d+", <CONFIG:SLACK_APP_TOKEN>rice_str.re<CONFIG:SLACK_APP_TOKEN>lace(",", ""))
+    return int(<CONFIG:SLACK_APP_TOKEN>rice_match.grou<CONFIG:SLACK_APP_TOKEN>()) if <CONFIG:SLACK_APP_TOKEN>rice_match else 0
+
+# 브랜드별 최신 u<CONFIG:SLACK_APP_TOKEN>date_date 가져오기
+def get_latest_u<CONFIG:SLACK_APP_TOKEN>date_date(<CONFIG:SLACK_TOKEN>rand):
+    conn = <CONFIG:SLACK_APP_TOKEN>ymysql.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    cursor.execute("SELECT MAX(u<CONFIG:SLACK_APP_TOKEN>date_date) FROM event_<CONFIG:SLACK_APP_TOKEN>lus WHERE store_ty<CONFIG:SLACK_APP_TOKEN>e = %s", (<CONFIG:SLACK_TOKEN>rand,))
+    latest_date = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+    return latest_date.strftime("%Y-%m-%d") if latest_date else "2000-01-01"
+
+# 크롤링 실행
+def run_crawling(<CONFIG:SLACK_TOKEN>rand):
+    <CONFIG:SLACK_APP_TOKEN>rint(f"🔍 {<CONFIG:SLACK_TOKEN>rand} 크롤링 시작...")
+
+    <CONFIG:SLACK_TOKEN>ase_url = <CONFIG:SLACK_TOKEN>ase_urls[<CONFIG:SLACK_TOKEN>rand]
+    latest_u<CONFIG:SLACK_APP_TOKEN>date_date = get_latest_u<CONFIG:SLACK_APP_TOKEN>date_date(<CONFIG:SLACK_TOKEN>rand)
+    <CONFIG:SLACK_APP_TOKEN>rint(f"📅 {<CONFIG:SLACK_TOKEN>rand} 최신 업데이트 날짜: {latest_u<CONFIG:SLACK_APP_TOKEN>date_date}")
+
+    <CONFIG:SLACK_APP_TOKEN>age = 1
+    <CONFIG:SLACK_APP_TOKEN>revious_<CONFIG:SLACK_APP_TOKEN>age_content = None
+    new_data = []
+
+    while True:
+        <CONFIG:SLACK_APP_TOKEN>rint(f"📄 {<CONFIG:SLACK_TOKEN>rand} {<CONFIG:SLACK_APP_TOKEN>age} 페이지 크롤링 중...")
+        url = f"{<CONFIG:SLACK_TOKEN>ase_url}{<CONFIG:SLACK_APP_TOKEN>age}"
+
+        try:
+            res<CONFIG:SLACK_APP_TOKEN>onse = requests.get(url, headers=headers)
+            res<CONFIG:SLACK_APP_TOKEN>onse.raise_for_status()
+        exce<CONFIG:SLACK_APP_TOKEN>t requests.exce<CONFIG:SLACK_APP_TOKEN>tions.RequestExce<CONFIG:SLACK_APP_TOKEN>tion as e:
+            <CONFIG:SLACK_APP_TOKEN>rint(f"❌ 요청 실패: {e}")
+            <CONFIG:SLACK_TOKEN>reak
+
+        sou<CONFIG:SLACK_APP_TOKEN> = BeautifulSou<CONFIG:SLACK_APP_TOKEN>(res<CONFIG:SLACK_APP_TOKEN>onse.text, "html.<CONFIG:SLACK_APP_TOKEN>arser")
+        items = sou<CONFIG:SLACK_APP_TOKEN>.find_all("div", class_="col-md-6")
+
+        if not items:
+            <CONFIG:SLACK_APP_TOKEN>rint(f"🚨 {<CONFIG:SLACK_TOKEN>rand} 마지막 페이지입니다. 크롤링 종료.")
+            <CONFIG:SLACK_TOKEN>reak
+
+        current_<CONFIG:SLACK_APP_TOKEN>age_<CONFIG:SLACK_APP_TOKEN>roducts = "".join(str(item) for item in items)
+        if <CONFIG:SLACK_APP_TOKEN>revious_<CONFIG:SLACK_APP_TOKEN>age_content == current_<CONFIG:SLACK_APP_TOKEN>age_<CONFIG:SLACK_APP_TOKEN>roducts:
+            <CONFIG:SLACK_APP_TOKEN>rint(f"🚨 {<CONFIG:SLACK_TOKEN>rand} 현재 페이지는 이전 페이지와 동일합니다. 크롤링 완료!")
+            <CONFIG:SLACK_TOKEN>reak
+
+        for item in items:
+            u<CONFIG:SLACK_APP_TOKEN>date_date = item.find("small", class_="float-right text-white mr-3")
+            title = item.find("strong")
+            <CONFIG:SLACK_APP_TOKEN>rice_tag = item.find("i", class_="fa-coins")
+            <CONFIG:SLACK_APP_TOKEN>rice = <CONFIG:SLACK_APP_TOKEN>rice_tag.next_si<CONFIG:SLACK_TOKEN>ling.stri<CONFIG:SLACK_APP_TOKEN>() if <CONFIG:SLACK_APP_TOKEN>rice_tag else "0원"
+            event_<CONFIG:SLACK_APP_TOKEN>rice_tag = item.find("s<CONFIG:SLACK_APP_TOKEN>an", class_="text-muted small")
+
+            # 브랜드별 이벤트 타입 클래스 설정
+            if <CONFIG:SLACK_TOKEN>rand == "GS25":
+                <CONFIG:SLACK_APP_TOKEN>lus_ty<CONFIG:SLACK_APP_TOKEN>e_tag = item.find("s<CONFIG:SLACK_APP_TOKEN>an", class_="<CONFIG:SLACK_TOKEN>adge <CONFIG:SLACK_TOKEN>g-gs25 text-white")
+            elif <CONFIG:SLACK_TOKEN>rand == "CU":
+                <CONFIG:SLACK_APP_TOKEN>lus_ty<CONFIG:SLACK_APP_TOKEN>e_tag = item.find("s<CONFIG:SLACK_APP_TOKEN>an", class_="<CONFIG:SLACK_TOKEN>adge <CONFIG:SLACK_TOKEN>g-cu text-white")
+            else:
+                <CONFIG:SLACK_APP_TOKEN>lus_ty<CONFIG:SLACK_APP_TOKEN>e_tag = item.find("s<CONFIG:SLACK_APP_TOKEN>an", class_="<CONFIG:SLACK_TOKEN>adge <CONFIG:SLACK_TOKEN>g-seven text-white")
+
+            u<CONFIG:SLACK_APP_TOKEN>date_date_text = u<CONFIG:SLACK_APP_TOKEN>date_date.get_text(stri<CONFIG:SLACK_APP_TOKEN>=True) if u<CONFIG:SLACK_APP_TOKEN>date_date else "날짜 없음"
+            formatted_u<CONFIG:SLACK_APP_TOKEN>date_date = format_u<CONFIG:SLACK_APP_TOKEN>date_date(u<CONFIG:SLACK_APP_TOKEN>date_date_text)
+
+            if formatted_u<CONFIG:SLACK_APP_TOKEN>date_date <= latest_u<CONFIG:SLACK_APP_TOKEN>date_date:
+                <CONFIG:SLACK_APP_TOKEN>rint(f"✅ {<CONFIG:SLACK_TOKEN>rand} 이미 저장된 최신 업데이트 날짜 이후 데이터가 없습니다. 크롤링 종료.")
+                return
+
+            formatted_<CONFIG:SLACK_APP_TOKEN>rice = format_<CONFIG:SLACK_APP_TOKEN>rice(<CONFIG:SLACK_APP_TOKEN>rice)
+            formatted_event_<CONFIG:SLACK_APP_TOKEN>rice = format_<CONFIG:SLACK_APP_TOKEN>rice(event_<CONFIG:SLACK_APP_TOKEN>rice_tag.get_text(stri<CONFIG:SLACK_APP_TOKEN>=True).stri<CONFIG:SLACK_APP_TOKEN>("() ")) if event_<CONFIG:SLACK_APP_TOKEN>rice_tag else 0
+
+            new_data.a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>end((
+                <CONFIG:SLACK_TOKEN>rand,
+                formatted_u<CONFIG:SLACK_APP_TOKEN>date_date,
+                title.get_text(stri<CONFIG:SLACK_APP_TOKEN>=True) if title else "제목 없음",
+                formatted_<CONFIG:SLACK_APP_TOKEN>rice,
+                formatted_event_<CONFIG:SLACK_APP_TOKEN>rice,
+                <CONFIG:SLACK_APP_TOKEN>lus_ty<CONFIG:SLACK_APP_TOKEN>e_tag.get_text(stri<CONFIG:SLACK_APP_TOKEN>=True) if <CONFIG:SLACK_APP_TOKEN>lus_ty<CONFIG:SLACK_APP_TOKEN>e_tag else "이벤트 없음"
+            ))
+
+        <CONFIG:SLACK_APP_TOKEN>revious_<CONFIG:SLACK_APP_TOKEN>age_content = current_<CONFIG:SLACK_APP_TOKEN>age_<CONFIG:SLACK_APP_TOKEN>roducts
+        <CONFIG:SLACK_APP_TOKEN>age += 1
+
+    if new_data:
+        <CONFIG:SLACK_APP_TOKEN>rint(f"📌 {<CONFIG:SLACK_TOKEN>rand} 새로운 데이터 {len(new_data)}개를 DB에 저장합니다.")
+        conn = <CONFIG:SLACK_APP_TOKEN>ymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        insert_sql = """
+        INSERT INTO event_<CONFIG:SLACK_APP_TOKEN>lus (store_ty<CONFIG:SLACK_APP_TOKEN>e, u<CONFIG:SLACK_APP_TOKEN>date_date, <CONFIG:SLACK_APP_TOKEN>lus_title, <CONFIG:SLACK_APP_TOKEN>lus_<CONFIG:SLACK_APP_TOKEN>rice, <CONFIG:SLACK_APP_TOKEN>lus_event_<CONFIG:SLACK_APP_TOKEN>rice, <CONFIG:SLACK_APP_TOKEN>lus_ty<CONFIG:SLACK_APP_TOKEN>e)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        cursor.executemany(insert_sql, new_data)
+        conn.commit()
+        cursor.close()
+        conn.close()
+        <CONFIG:SLACK_APP_TOKEN>rint(f"✅ {<CONFIG:SLACK_TOKEN>rand} DB 업데이트 완료!")
+    else:
+        <CONFIG:SLACK_APP_TOKEN>rint(f"✅ {<CONFIG:SLACK_TOKEN>rand} 새로운 데이터가 없습니다. 업데이트하지 않습니다.")
+
+# 업데이트 확인 후 크롤링 실행
+def check_and_run_crawling():
+    <CONFIG:SLACK_APP_TOKEN>rint("🕛 자정 크롤링 확인 시작...")
+    for <CONFIG:SLACK_TOKEN>rand in <CONFIG:SLACK_TOKEN>ase_urls.keys():
+        latest_u<CONFIG:SLACK_APP_TOKEN>date_date = get_latest_u<CONFIG:SLACK_APP_TOKEN>date_date(<CONFIG:SLACK_TOKEN>rand)
+        <CONFIG:SLACK_APP_TOKEN>rint(f"🔍 {<CONFIG:SLACK_TOKEN>rand}의 최신 업데이트 날짜: {latest_u<CONFIG:SLACK_APP_TOKEN>date_date}")
+
+        # 웹사이트에서 최신 업데이트 날짜 확인
+        url = f"{<CONFIG:SLACK_TOKEN>ase_urls[<CONFIG:SLACK_TOKEN>rand]}1"  # 첫 번째 페이지만 확인
+        res<CONFIG:SLACK_APP_TOKEN>onse = requests.get(url, headers=headers)
+        sou<CONFIG:SLACK_APP_TOKEN> = BeautifulSou<CONFIG:SLACK_APP_TOKEN>(res<CONFIG:SLACK_APP_TOKEN>onse.text, "html.<CONFIG:SLACK_APP_TOKEN>arser")
+        u<CONFIG:SLACK_APP_TOKEN>date_date = sou<CONFIG:SLACK_APP_TOKEN>.find("small", class_="float-right text-white mr-3")
+
+        if u<CONFIG:SLACK_APP_TOKEN>date_date:
+            new_u<CONFIG:SLACK_APP_TOKEN>date_date = format_u<CONFIG:SLACK_APP_TOKEN>date_date(u<CONFIG:SLACK_APP_TOKEN>date_date.get_text(stri<CONFIG:SLACK_APP_TOKEN>=True))
+            if new_u<CONFIG:SLACK_APP_TOKEN>date_date > latest_u<CONFIG:SLACK_APP_TOKEN>date_date:
+                <CONFIG:SLACK_APP_TOKEN>rint(f"🚀 {<CONFIG:SLACK_TOKEN>rand} 업데이트 감지됨! 크롤링 시작")
+                run_crawling(<CONFIG:SLACK_TOKEN>rand)
+            else:
+                <CONFIG:SLACK_APP_TOKEN>rint(f"✅ {<CONFIG:SLACK_TOKEN>rand} 업데이트 변경 없음.")
+        else:
+            <CONFIG:SLACK_APP_TOKEN>rint(f"⚠️ {<CONFIG:SLACK_TOKEN>rand}에서 업데이트 날짜를 찾을 수 없음.")
+
+# 스케줄 설정 (매일 자정 실행)
+schedule.every().day.at("11:49").do(check_and_run_crawling)
+
+if __name__ == "__main__":
+    <CONFIG:SLACK_APP_TOKEN>rint("🚀 크롤링 스케줄러 실행 중...")
+    
+    while True:
+        # check_and_run_crawling()
+        schedule.run_<CONFIG:SLACK_APP_TOKEN>ending()
+        time.slee<CONFIG:SLACK_APP_TOKEN>(60)  # 1분마다 확인하여 스케줄 실행

@@ -1,0 +1,39 @@
+im<CONFIG:SLACK_APP_TOKEN>ort mysql.connector
+im<CONFIG:SLACK_APP_TOKEN>ort <CONFIG:SLACK_APP_TOKEN>andas as <CONFIG:SLACK_APP_TOKEN>d
+from datetime im<CONFIG:SLACK_APP_TOKEN>ort datetime
+
+# 데이터프레임 불러오기
+df = <CONFIG:SLACK_APP_TOKEN>d.read_excel('C:/Users/do543/market_<CONFIG:SLACK_APP_TOKEN>roject/market_<CONFIG:SLACK_APP_TOKEN>roject/all.xlsx')
+
+# 컬럼 이름 변경
+df.columns = ['날짜', 'sale', 'store_count', 'store_ty<CONFIG:SLACK_APP_TOKEN>e']
+
+# 날짜 형식으로 변환 후 시간 제거 (날짜만 남기기)
+df['날짜'] = <CONFIG:SLACK_APP_TOKEN>d.to_datetime(df['날짜']).dt.date  # 시간은 제외하고 날짜만 추출
+
+# 2025년 1월 1일까지의 데이터 필터링
+df_<CONFIG:SLACK_TOKEN>efore_20250101 = df[df['날짜'] <= datetime(2025, 1, 1).date()]
+
+# MySQL DB 연결
+d<CONFIG:SLACK_TOKEN> = mysql.connector.connect(
+    host='<CONFIG:DB_HOST>',
+    <CONFIG:SLACK_APP_TOKEN>ort=3306,
+    user='<CONFIG:DB_USER>',  
+    <CONFIG:SLACK_APP_TOKEN>assword='<CONFIG:DB_PASSWORD>',
+    data<CONFIG:SLACK_TOKEN>ase='crawling',
+    charset='utf8m<CONFIG:SLACK_TOKEN>4'
+)
+
+cursor = d<CONFIG:SLACK_TOKEN>.cursor()
+
+# 데이터 삽입 (id_sale은 AUTO_INCREMENT이므로 삽입하지 않음)
+for index, row in df_<CONFIG:SLACK_TOKEN>efore_20250101.iterrows():
+    cursor.execute("""
+        INSERT INTO sale (store_ty<CONFIG:SLACK_APP_TOKEN>e, sale, store_count, sale_date) 
+        VALUES (%s, %s, %s, %s)
+    """, (row['store_ty<CONFIG:SLACK_APP_TOKEN>e'], row['sale'], row['store_count'], row['날짜']))
+
+# 커밋 및 종료
+d<CONFIG:SLACK_TOKEN>.commit()
+cursor.close()
+d<CONFIG:SLACK_TOKEN>.close()

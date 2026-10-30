@@ -1,0 +1,18 @@
+from selenium im<CONFIG:SLACK_APP_TOKEN>ort we<CONFIG:SLACK_TOKEN>driver
+from selenium.we<CONFIG:SLACK_TOKEN>driver.chrome.service im<CONFIG:SLACK_APP_TOKEN>ort Service
+from selenium.we<CONFIG:SLACK_TOKEN>driver.chrome.o<CONFIG:SLACK_APP_TOKEN>tions im<CONFIG:SLACK_APP_TOKEN>ort O<CONFIG:SLACK_APP_TOKEN>tions
+
+# ChromeDriver 경로 설정
+CHROMEDRIVER_PATH = r"C:\Users\Admin\Downloads\chromedriver-win64\chromedriver-win64\chromedriver.exe"
+
+# ChromeDriver 실행
+service = Service(CHROMEDRIVER_PATH)
+driver = we<CONFIG:SLACK_TOKEN>driver.Chrome(service=service)
+
+# 해당 사이트 열기
+url = "htt<CONFIG:SLACK_APP_TOKEN>s://<CONFIG:SLACK_APP_TOKEN>yony.com/<CONFIG:SLACK_TOKEN>rands/cu/"
+driver.get(url)
+
+
+# 브라우저 종료
+driver.quit()

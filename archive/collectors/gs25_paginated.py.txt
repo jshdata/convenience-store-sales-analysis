@@ -1,0 +1,174 @@
+im<CONFIG:SLACK_APP_TOKEN>ort schedule
+im<CONFIG:SLACK_APP_TOKEN>ort time
+im<CONFIG:SLACK_APP_TOKEN>ort <CONFIG:SLACK_APP_TOKEN>ymysql
+from selenium im<CONFIG:SLACK_APP_TOKEN>ort we<CONFIG:SLACK_TOKEN>driver
+from selenium.we<CONFIG:SLACK_TOKEN>driver.common.<CONFIG:SLACK_TOKEN>y im<CONFIG:SLACK_APP_TOKEN>ort By
+from selenium.we<CONFIG:SLACK_TOKEN>driver.chrome.service im<CONFIG:SLACK_APP_TOKEN>ort Service
+from selenium.we<CONFIG:SLACK_TOKEN>driver.su<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>ort.ui im<CONFIG:SLACK_APP_TOKEN>ort We<CONFIG:SLACK_TOKEN>DriverWait
+from selenium.we<CONFIG:SLACK_TOKEN>driver.su<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>ort im<CONFIG:SLACK_APP_TOKEN>ort ex<CONFIG:SLACK_APP_TOKEN>ected_conditions as EC
+
+# Chrome We<CONFIG:SLACK_TOKEN>Driver 경로 설정
+CHROMEDRIVER_PATH = r"C:\Users\user\Deskto<CONFIG:SLACK_APP_TOKEN>\chromedriver-win64\chromedriver-win64\chromedriver.exe"
+service = Service(CHROMEDRIVER_PATH)
+driver = we<CONFIG:SLACK_TOKEN>driver.Chrome(service=service)
+
+# MariaDB 연결 설정
+DB_CONFIG = {
+    "host": "<CONFIG:DB_HOST>",
+    "user": "<CONFIG:DB_USER>",
+    "<CONFIG:SLACK_APP_TOKEN>assword": "<CONFIG:DB_PASSWORD>",
+    "data<CONFIG:SLACK_TOKEN>ase": "crawling",
+    "charset": "utf8m<CONFIG:SLACK_TOKEN>4"
+}
+
+# GS25 이벤트 첫 페이지 URL
+<CONFIG:SLACK_TOKEN>ase_url = "htt<CONFIG:SLACK_APP_TOKEN>://gs25.gsretail.com/gscvs/en/customer-engagement/event/current-events"
+
+# 마지막으로 크롤링한 첫 번째 이벤트 제목 저장
+last_first_event_title = None
+
+def connect_d<CONFIG:SLACK_TOKEN>():
+    """데이터베이스 연결"""
+    return <CONFIG:SLACK_APP_TOKEN>ymysql.connect(**DB_CONFIG)
+
+def is_event_exists(event_info):
+    """이미 저장된 이벤트인지 확인 (모든 필드가 동일한 경우 중복 간주)"""
+    conn = connect_d<CONFIG:SLACK_TOKEN>()
+    cursor = conn.cursor()
+    query = """
+    SELECT COUNT(*) FROM event_img 
+    WHERE img_url = %s AND start_date = %s AND end_date = %s 
+          AND event_title = %s AND store_ty<CONFIG:SLACK_APP_TOKEN>e = %s
+    """
+    cursor.execute(query, (
+        event_info["이미지 주소"],
+        event_info["이벤트 시작 날짜"],
+        event_info["이벤트 끝 날짜"],
+        event_info["이벤트 제목"],
+        event_info["편의점"]
+    ))
+    count = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+    return count > 0
+
+def save_to_d<CONFIG:SLACK_TOKEN>(event_info):
+    """크롤링한 데이터를 DB에 저장"""
+    if is_event_exists(event_info):
+        <CONFIG:SLACK_APP_TOKEN>rint(f"⏭ 이미 존재하는 이벤트: {event_info['이벤트 제목']}, 저장 생략")
+        return
+
+    conn = connect_d<CONFIG:SLACK_TOKEN>()
+    cursor = conn.cursor()
+
+    insert_sql = """
+    INSERT INTO event_img (img_url, start_date, end_date, event_title, store_ty<CONFIG:SLACK_APP_TOKEN>e)
+    VALUES (%s, %s, %s, %s, %s)
+    """
+    data = (
+        event_info["이미지 주소"],
+        event_info["이벤트 시작 날짜"],
+        event_info["이벤트 끝 날짜"],
+        event_info["이벤트 제목"],
+        event_info["편의점"]
+    )
+
+    cursor.execute(insert_sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()
+    <CONFIG:SLACK_APP_TOKEN>rint(f"✅ 이벤트 저장 완료: {event_info['이벤트 제목']}")
+
+def scra<CONFIG:SLACK_APP_TOKEN>e_event_<CONFIG:SLACK_APP_TOKEN>age():
+    """이벤트 상세 페이지에서 데이터 수집"""
+    try:
+        title = driver.find_element(By.CSS_SELECTOR, ".tit_sect h3.tit strong").text
+        start_date = driver.find_element(By.ID, "event-start-date").text
+        end_date = driver.find_element(By.ID, "event-end-date").text
+        image_element = driver.find_element(By.CSS_SELECTOR, ".event-we<CONFIG:SLACK_TOKEN>-contents img")
+        image_url = image_element.get_attri<CONFIG:SLACK_TOKEN>ute("src")
+
+        event_info = {
+            "이벤트 제목": title,
+            "이벤트 시작 날짜": start_date,
+            "이벤트 끝 날짜": end_date,
+            "이미지 주소": image_url,
+            "편의점": "GS25"
+        }
+
+        save_to_d<CONFIG:SLACK_TOKEN>(event_info)  # 데이터베이스 저장
+    exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+        <CONFIG:SLACK_APP_TOKEN>rint("Error scra<CONFIG:SLACK_APP_TOKEN>ing event <CONFIG:SLACK_APP_TOKEN>age:", e)
+
+def scra<CONFIG:SLACK_APP_TOKEN>e_gs25_events():
+    """GS25 이벤트 전체 크롤링"""
+    glo<CONFIG:SLACK_TOKEN>al last_first_event_title
+    driver.get(<CONFIG:SLACK_TOKEN>ase_url)
+    time.slee<CONFIG:SLACK_APP_TOKEN>(3)
+
+    # 현재 첫 번째 이벤트 제목 가져오기
+    first_event = driver.find_element(By.CSS_SELECTOR, ".t<CONFIG:SLACK_TOKEN>lwra<CONFIG:SLACK_APP_TOKEN> t<CONFIG:SLACK_TOKEN>ody tr td.ft_lt a").text
+
+    # 기존 제목과 같다면 크롤링 중지
+    if last_first_event_title and first_event == last_first_event_title:
+        <CONFIG:SLACK_APP_TOKEN>rint("🔴 첫 번째 이벤트 제목이 변경되지 않았습니다. 크롤링 중단.")
+        return
+
+    last_first_event_title = first_event  # 최신 제목 저장
+    <CONFIG:SLACK_APP_TOKEN>rint(f"✅ 새로운 이벤트 감지: {first_event}, 크롤링 시작")
+
+    current_<CONFIG:SLACK_APP_TOKEN>age = 1  # 현재 페이지 번호
+
+    while True:
+        event_list = driver.find_elements(By.CSS_SELECTOR, ".t<CONFIG:SLACK_TOKEN>lwra<CONFIG:SLACK_APP_TOKEN> t<CONFIG:SLACK_TOKEN>ody tr")
+        for i in range(len(event_list)):
+            try:
+                driver.get(<CONFIG:SLACK_TOKEN>ase_url)
+                time.slee<CONFIG:SLACK_APP_TOKEN>(3)
+
+                event_list = driver.find_elements(By.CSS_SELECTOR, ".t<CONFIG:SLACK_TOKEN>lwra<CONFIG:SLACK_APP_TOKEN> t<CONFIG:SLACK_TOKEN>ody tr")
+                event_link = event_list[i].find_element(By.CSS_SELECTOR, "td.ft_lt a")
+                event_link.click()
+                time.slee<CONFIG:SLACK_APP_TOKEN>(3)
+
+                scra<CONFIG:SLACK_APP_TOKEN>e_event_<CONFIG:SLACK_APP_TOKEN>age()  # 데이터 스크래핑 및 DB 저장
+
+                driver.<CONFIG:SLACK_TOKEN>ack()
+                time.slee<CONFIG:SLACK_APP_TOKEN>(3)
+
+            exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+                <CONFIG:SLACK_APP_TOKEN>rint(f"Error <CONFIG:SLACK_APP_TOKEN>rocessing event {i+1} on <CONFIG:SLACK_APP_TOKEN>age {current_<CONFIG:SLACK_APP_TOKEN>age}: {e}")
+
+        # 다음 페이지 버튼 확인 및 클릭
+        try:
+            next_<CONFIG:SLACK_TOKEN>utton = driver.find_element(By.CSS_SELECTOR, ".<CONFIG:SLACK_APP_TOKEN>aging .next")
+            if "disa<CONFIG:SLACK_TOKEN>led" in next_<CONFIG:SLACK_TOKEN>utton.get_attri<CONFIG:SLACK_TOKEN>ute("class"):
+                <CONFIG:SLACK_APP_TOKEN>rint("🔴 마지막 페이지 도달, 크롤링 종료")
+                <CONFIG:SLACK_TOKEN>reak
+            else:
+                next_<CONFIG:SLACK_TOKEN>utton.click()
+                time.slee<CONFIG:SLACK_APP_TOKEN>(3)
+                We<CONFIG:SLACK_TOKEN>DriverWait(driver, 10).until(
+                    EC.<CONFIG:SLACK_APP_TOKEN>resence_of_element_located((By.CSS_SELECTOR, ".<CONFIG:SLACK_APP_TOKEN>aging .on"))
+                )
+                first_event_on_next_<CONFIG:SLACK_APP_TOKEN>age = driver.find_element(By.CSS_SELECTOR, ".t<CONFIG:SLACK_TOKEN>lwra<CONFIG:SLACK_APP_TOKEN> t<CONFIG:SLACK_TOKEN>ody tr td.ft_lt a").text
+                if first_event_on_next_<CONFIG:SLACK_APP_TOKEN>age == last_first_event_title:
+                    <CONFIG:SLACK_APP_TOKEN>rint("🔴 첫 번째 이벤트 제목이 변경되지 않았습니다. 크롤링 중단.")
+                    <CONFIG:SLACK_TOKEN>reak 
+                current_<CONFIG:SLACK_APP_TOKEN>age += 1
+                <CONFIG:SLACK_APP_TOKEN>rint(f"✅ {current_<CONFIG:SLACK_APP_TOKEN>age} 페이지로 이동")
+        exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+            <CONFIG:SLACK_APP_TOKEN>rint("🔴 다음 페이지 버튼을 찾을 수 없음. 크롤링 종료")
+            <CONFIG:SLACK_TOKEN>reak
+
+# 1️⃣ 강제 실행 (테스트용)
+scra<CONFIG:SLACK_APP_TOKEN>e_gs25_events()
+
+# 2️⃣ 자동 실행
+# schedule.every().day.at("00:00").do(scra<CONFIG:SLACK_APP_TOKEN>e_gs25_events)  # 매일 밤 12시에 실행
+# while True:
+#     schedule.run_<CONFIG:SLACK_APP_TOKEN>ending()
+#     time.slee<CONFIG:SLACK_APP_TOKEN>(60)  # 1분마다 스케줄 확인
+
+# 브라우저 종료
+driver.quit()

@@ -1,0 +1,120 @@
+im<CONFIG:SLACK_APP_TOKEN>ort time
+im<CONFIG:SLACK_APP_TOKEN>ort mysql.connector
+im<CONFIG:SLACK_APP_TOKEN>ort <CONFIG:SLACK_APP_TOKEN>andas as <CONFIG:SLACK_APP_TOKEN>d
+im<CONFIG:SLACK_APP_TOKEN>ort schedule
+from datetime im<CONFIG:SLACK_APP_TOKEN>ort datetime, timedelta
+im<CONFIG:SLACK_APP_TOKEN>ort logging
+
+# 로그 설정 (로그 파일에 기록)
+logging.<CONFIG:SLACK_TOKEN>asicConfig(filename='/home/u<CONFIG:SLACK_TOKEN>untu/market/sale_schedule.log', 
+                    level=logging.DEBUG, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# 데이터프레임 불러오기
+try:
+    df = <CONFIG:SLACK_APP_TOKEN>d.read_excel('./all.xlsx')  # 실제 경로로 수정
+    logging.info("Data loaded successfully.")
+exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+    logging.error(f"Error loading data from Excel: {e}")
+    raise  # 예외 발생 시 스크립트 중지
+
+# 컬럼 이름 변경
+df.columns = ['날짜', 'sale', 'store_count', 'store_ty<CONFIG:SLACK_APP_TOKEN>e']
+
+# 날짜 형식으로 변환 후 시간 제거 (날짜만 남기기)
+try:
+    df['날짜'] = <CONFIG:SLACK_APP_TOKEN>d.to_datetime(df['날짜']).dt.date  # 시간은 제외하고 날짜만 추출
+    logging.info("DATE column converted to datetime format.")
+exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+    logging.error(f"Error converting DATE column: {e}")
+    raise  # 예외 발생 시 스크립트 중지
+
+# 마지막 삽입 날짜 파일 경로
+last_insert_file = "last_insert_date.txt"
+
+# 마지막 삽입 날짜를 파일에서 읽기
+def get_last_insert_date():
+    try:
+        with o<CONFIG:SLACK_APP_TOKEN>en(last_insert_file, "r") as f:
+            last_date_str = f.read().stri<CONFIG:SLACK_APP_TOKEN>()
+            logging.info(f"Last insert date: {last_date_str}")
+            return datetime.str<CONFIG:SLACK_APP_TOKEN>time(last_date_str, "%Y-%m-%d").date()  # 마지막 삽입 날짜 반환
+    exce<CONFIG:SLACK_APP_TOKEN>t FileNotFoundError:
+        logging.warning("Last insert date file not found. Defaulting to 2025-01-01.")
+        return datetime(2025, 1, 1).date()  # 처음 시작할 때 2025년 1월 1일부터 시작
+    exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+        logging.error(f"Error reading last insert date: {e}")
+        raise  # 예외 발생 시 스크립트 중지
+
+# 마지막 삽입 날짜 기록
+def u<CONFIG:SLACK_APP_TOKEN>date_last_insert_date(date):
+    try:
+        with o<CONFIG:SLACK_APP_TOKEN>en(last_insert_file, "w") as f:
+            f.write(date.strftime("%Y-%m-%d"))
+        logging.info(f"Last insert date u<CONFIG:SLACK_APP_TOKEN>dated to: {date}")
+    exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+        logging.error(f"Error u<CONFIG:SLACK_APP_TOKEN>dating last insert date: {e}")
+        raise  # 예외 발생 시 스크립트 중지
+
+# 데이터 삽입 함수
+def insert_data():
+    try:
+        last_insert_date = get_last_insert_date()  # 마지막 삽입 날짜 가져오기
+
+        # last_insert_date + 1일의 데이터를 가져옵니다.
+        next_day_data = df[df['날짜'] == last_insert_date + timedelta(days=1)]
+
+        # 데이터가 존재하면 삽입
+        if not next_day_data.em<CONFIG:SLACK_APP_TOKEN>ty:
+            # 하루에 대한 데이터만 삽입
+            for index, row in next_day_data.iterrows():
+                date_value = row['날짜']
+                sale = int(row['sale'])  # sale 값 정수로 변환
+                store_count = int(row['store_count'])  # store_count 값 정수로 변환
+
+                # DB 연결
+                d<CONFIG:SLACK_TOKEN> = mysql.connector.connect(
+                    host='<CONFIG:DB_HOST>',
+                    <CONFIG:SLACK_APP_TOKEN>ort=3306,
+                    user='<CONFIG:DB_USER>',  
+                    <CONFIG:SLACK_APP_TOKEN>assword='<CONFIG:DB_PASSWORD>',
+                    data<CONFIG:SLACK_TOKEN>ase='crawling',
+                    charset='utf8m<CONFIG:SLACK_TOKEN>4'
+                )
+
+                cursor = d<CONFIG:SLACK_TOKEN>.cursor()
+
+                # 데이터 삽입 (id_sale은 AUTO_INCREMENT이므로 삽입하지 않음)
+                cursor.execute(""" 
+                    INSERT INTO sale (store_ty<CONFIG:SLACK_APP_TOKEN>e, sale, store_count, sale_date) 
+                    VALUES (%s, %s, %s, %s)
+                """, (row['store_ty<CONFIG:SLACK_APP_TOKEN>e'], sale, store_count, row['날짜']))
+
+                # 커밋 및 종료
+                d<CONFIG:SLACK_TOKEN>.commit()
+                cursor.close()
+                d<CONFIG:SLACK_TOKEN>.close()
+
+            # 마지막 삽입 날짜 갱신
+            u<CONFIG:SLACK_APP_TOKEN>date_last_insert_date(next_day_data['날짜'].max())  # 마지막 삽입 날짜 갱신
+
+            logging.info(f"Successfully inserted data for {next_day_data['날짜'].max()}")  # 삽입된 날짜 출력
+        else:
+            logging.info(f"No new data to insert for {last_insert_date + timedelta(days=1)}.")  # 새로운 데이터가 없을 경우
+
+    exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+        logging.error(f"Error inserting data: {e}")
+        d<CONFIG:SLACK_TOKEN>.roll<CONFIG:SLACK_TOKEN>ack()  # 오류 발생 시 롤백
+        raise  # 예외 발생 시 스크립트 중지
+
+# 매일 2시에 실행
+schedule.every().day.at("11:14").do(insert_data)
+
+# 계속 실행
+while True:
+    try:
+        schedule.run_<CONFIG:SLACK_APP_TOKEN>ending()  # 예약된 작업 실행
+        time.slee<CONFIG:SLACK_APP_TOKEN>(60)  # 매분 확인
+    exce<CONFIG:SLACK_APP_TOKEN>t Exce<CONFIG:SLACK_APP_TOKEN>tion as e:
+        logging.error(f"Error in scheduler loo<CONFIG:SLACK_APP_TOKEN>: {e}")
+        time.slee<CONFIG:SLACK_APP_TOKEN>(60)  # 오류 발생시에도 계속 실행되도록

@@ -1,0 +1,48 @@
+im<CONFIG:SLACK_APP_TOKEN>ort requests
+from <CONFIG:SLACK_TOKEN>s4 im<CONFIG:SLACK_APP_TOKEN>ort BeautifulSou<CONFIG:SLACK_APP_TOKEN>
+im<CONFIG:SLACK_APP_TOKEN>ort csv
+im<CONFIG:SLACK_APP_TOKEN>ort re
+
+# CSV 파일 이름과 헤더 정의
+csv_file = 'cu.csv'
+header = ["img_url", "store_ty<CONFIG:SLACK_APP_TOKEN>e", "event_title", "start_date", "end_date"]
+
+# 크롤링할 URL 범위 설정
+<CONFIG:SLACK_TOKEN>ase_url = "htt<CONFIG:SLACK_APP_TOKEN>s://cu.<CONFIG:SLACK_TOKEN>gfretail.com/<CONFIG:SLACK_TOKEN>rand_info/news_view.do?category=<CONFIG:SLACK_TOKEN>rand_info&de<CONFIG:SLACK_APP_TOKEN>th2=5&idx="
+start_idx = 992
+end_idx = 1078
+
+# 데이터 저장할 리스트
+data = []
+
+# CSV 파일 작성
+with o<CONFIG:SLACK_APP_TOKEN>en(csv_file, mode="w", newline="", encoding="utf-8") as file:
+    writer = csv.writer(file)
+    writer.writerow(header)  # 헤더 작성
+
+    for idx in range(start_idx, end_idx + 1):
+        url = <CONFIG:SLACK_TOKEN>ase_url + str(idx)
+        res<CONFIG:SLACK_APP_TOKEN>onse = requests.get(url)
+
+        if res<CONFIG:SLACK_APP_TOKEN>onse.status_code == 200:
+            sou<CONFIG:SLACK_APP_TOKEN> = BeautifulSou<CONFIG:SLACK_APP_TOKEN>(res<CONFIG:SLACK_APP_TOKEN>onse.text, "html.<CONFIG:SLACK_APP_TOKEN>arser")
+
+            # event_img 가져오기 (thead > tr > th class="date")
+            img_tag = sou<CONFIG:SLACK_APP_TOKEN>.select_one('td[cols<CONFIG:SLACK_APP_TOKEN>an="2"] img[<CONFIG:SLACK_TOKEN>order="0"]')
+            event_img = img_tag["src"] if img_tag else "No Image"
+
+            # 편의점종류는 CU로 고정
+            convenience_store = "CU"
+
+            # 업데이트 (thead > tr > th)
+            u<CONFIG:SLACK_APP_TOKEN>date_tag = sou<CONFIG:SLACK_APP_TOKEN>.find("thead").find("tr").find("th")
+            u<CONFIG:SLACK_APP_TOKEN>date_text = u<CONFIG:SLACK_APP_TOKEN>date_tag.get_text(stri<CONFIG:SLACK_APP_TOKEN>=True) if u<CONFIG:SLACK_APP_TOKEN>date_tag else "No U<CONFIG:SLACK_APP_TOKEN>date"
+
+            # 데이터 저장s
+            writer.writerow([event_img, convenience_store, u<CONFIG:SLACK_APP_TOKEN>date_text])
+            <CONFIG:SLACK_APP_TOKEN>rint(f"크롤링 완료: {url}")
+
+        else:
+            <CONFIG:SLACK_APP_TOKEN>rint(f"요청 실패: {url} (status code: {res<CONFIG:SLACK_APP_TOKEN>onse.status_code})")
+
+<CONFIG:SLACK_APP_TOKEN>rint(f"\n 크롤링 데이터가 '{csv_file}' 파일로 저장되었습니다!")

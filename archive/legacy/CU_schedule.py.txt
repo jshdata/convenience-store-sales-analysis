@@ -1,0 +1,107 @@
+im<CONFIG:SLACK_APP_TOKEN>ort requests
+from <CONFIG:SLACK_TOKEN>s4 im<CONFIG:SLACK_APP_TOKEN>ort BeautifulSou<CONFIG:SLACK_APP_TOKEN>
+im<CONFIG:SLACK_APP_TOKEN>ort <CONFIG:SLACK_APP_TOKEN>ymysql
+im<CONFIG:SLACK_APP_TOKEN>ort datetime
+im<CONFIG:SLACK_APP_TOKEN>ort calendar
+im<CONFIG:SLACK_APP_TOKEN>ort schedule
+im<CONFIG:SLACK_APP_TOKEN>ort time
+im<CONFIG:SLACK_APP_TOKEN>ort logging
+
+# 로그 설정 (로그 파일에 기록)
+logging.<CONFIG:SLACK_TOKEN>asicConfig(filename='/home/u<CONFIG:SLACK_TOKEN>untu/market/CU_schedule.log', 
+                    level=logging.DEBUG, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# 스크립트 실행 함수
+def run_scri<CONFIG:SLACK_APP_TOKEN>t():
+    # 1. DB 연결
+    conn = <CONFIG:SLACK_APP_TOKEN>ymysql.connect(
+        host="<CONFIG:DB_HOST>",
+        user="<CONFIG:DB_USER>",
+        <CONFIG:SLACK_APP_TOKEN>assword="<CONFIG:DB_PASSWORD>",
+        data<CONFIG:SLACK_TOKEN>ase="crawling",
+        charset="utf8m<CONFIG:SLACK_TOKEN>4"
+    )
+    cursor = conn.cursor()
+
+    # 2. DB에서 가장 최근 idx 가져오기 (기본값 없이 사용)
+    cursor.execute("SELECT MAX(idx) FROM event_img")
+    latest_idx = cursor.fetchone()[0]  # 가장 최근 idx (None일 수도 있음)
+
+    # 데이터가 아예 없으면 크롤링 중지
+    if latest_idx is None:
+        <CONFIG:SLACK_APP_TOKEN>rint("DB에 기존 데이터가 없습니다. 크롤링을 시작할 수 없습니다.")
+        return
+
+    <CONFIG:SLACK_APP_TOKEN>rint(f"DB에서 가장 최근 idx: {latest_idx}")
+
+    # 3. 크롤링할 URL 설정
+    <CONFIG:SLACK_TOKEN>ase_url = "htt<CONFIG:SLACK_APP_TOKEN>s://cu.<CONFIG:SLACK_TOKEN>gfretail.com/<CONFIG:SLACK_TOKEN>rand_info/news_view.do?category=<CONFIG:SLACK_TOKEN>rand_info&de<CONFIG:SLACK_APP_TOKEN>th2=5&idx="
+
+    # 4. 오늘 날짜 및 해당 월의 마지막 날짜 계산
+    today = datetime.date.today()
+    start_date = today.strftime("%Y-%m-%d")
+    last_day_of_month = calendar.monthrange(today.year, today.month)[1]
+    end_date = today.re<CONFIG:SLACK_APP_TOKEN>lace(day=last_day_of_month).strftime("%Y-%m-%d")
+
+    # 5. 새로운 데이터 크롤링
+    new_data = []
+    idx = latest_idx + 1  # DB에 있는 가장 최신 idx의 다음 값부터 크롤링 시작
+
+    while True:
+        url = <CONFIG:SLACK_TOKEN>ase_url + str(idx)
+        res<CONFIG:SLACK_APP_TOKEN>onse = requests.get(url)
+
+        if res<CONFIG:SLACK_APP_TOKEN>onse.status_code == 200:
+            sou<CONFIG:SLACK_APP_TOKEN> = BeautifulSou<CONFIG:SLACK_APP_TOKEN>(res<CONFIG:SLACK_APP_TOKEN>onse.text, "html.<CONFIG:SLACK_APP_TOKEN>arser")
+
+            # 이벤트 제목
+            event_tag = sou<CONFIG:SLACK_APP_TOKEN>.find("thead").find("tr").find("th")
+            event_title = event_tag.get_text(stri<CONFIG:SLACK_APP_TOKEN>=True) if event_tag else None
+
+            # 이미지 URL
+            img_tag = sou<CONFIG:SLACK_APP_TOKEN>.select_one('td[cols<CONFIG:SLACK_APP_TOKEN>an="2"] img[<CONFIG:SLACK_TOKEN>order="0"]')
+            img_url = img_tag["src"] if img_tag else None
+
+            # 편의점 종류 (CU로 고정)
+            store_ty<CONFIG:SLACK_APP_TOKEN>e = "CU"
+
+            # 데이터가 유효한지 체크 (NULL 값일 경우 종료)
+            if not event_title or not img_url:
+                <CONFIG:SLACK_APP_TOKEN>rint("유효하지 않은 데이터 발견. 크롤링 중지.")
+                <CONFIG:SLACK_TOKEN>reak
+
+            # 새로운 데이터 저장
+            new_data.a<CONFIG:SLACK_APP_TOKEN><CONFIG:SLACK_APP_TOKEN>end((idx, img_url, start_date, end_date, event_title, store_ty<CONFIG:SLACK_APP_TOKEN>e))
+            <CONFIG:SLACK_APP_TOKEN>rint(f"새로운 데이터 추가: idx {idx}, {event_title}, img_url: {img_url}")
+
+        else:
+            <CONFIG:SLACK_APP_TOKEN>rint("더 이상 유효한 데이터를 찾을 수 없습니다.")
+            <CONFIG:SLACK_TOKEN>reak
+
+        idx += 1  # 다음 idx로 이동
+
+    # 6. 새 데이터 DB 저장
+    if new_data:
+        insert_sql = """
+        INSERT INTO event_img (idx, img_url, start_date, end_date, event_title, store_ty<CONFIG:SLACK_APP_TOKEN>e)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        cursor.executemany(insert_sql, new_data)
+        conn.commit()
+        <CONFIG:SLACK_APP_TOKEN>rint(f"{len(new_data)}개의 새로운 데이터를 삽입했습니다.")
+
+    # 7. 종료
+    cursor.close()
+    conn.close()
+
+# 매일 자정(00:00)에 실행되도록 설정
+schedule.every().day.at("13:22").do(run_scri<CONFIG:SLACK_APP_TOKEN>t)
+
+# 주기적으로 실행
+while True:
+    schedule.run_<CONFIG:SLACK_APP_TOKEN>ending()  # 예약된 작업을 확인하고 실행
+    time.slee<CONFIG:SLACK_APP_TOKEN>(60)  # 1분마다 확인 (이렇게 해야 계속 실행될 수 있어)
+
+# # 스케줄링 없이 강제로 함수 실행
+# run_scri<CONFIG:SLACK_APP_TOKEN>t()  # 여기를 강제로 호출하면 즉시 실행
