@@ -28,3 +28,19 @@ def test_health_requires_live_socket(monkeypatch, tmp_path):
     assert app.test_client().get("/health").status_code == 200
     handler.client.is_connected.return_value = False
     assert app.test_client().get("/health").status_code == 503
+
+
+def test_socket_starts_once_in_serving_process(monkeypatch, tmp_path):
+    ca = tmp_path / "ca.pem"
+    ca.write_text("synthetic-public-ca", encoding="utf-8")
+    monkeypatch.setattr(web, "validate_settings", lambda: ([], ["CU"]))
+    monkeypatch.setattr(web, "db_config", lambda: {"sslmode": "verify-full", "sslrootcert": str(ca)})
+    thread = Mock()
+    monkeypatch.setattr(web, "Thread", thread)
+    app = web.create_app()
+    thread.assert_not_called()
+    client = app.test_client()
+    client.get("/health")
+    client.get("/")
+    thread.assert_called_once()
+    thread.return_value.start.assert_called_once()

@@ -3,7 +3,7 @@
 import atexit
 import logging
 from pathlib import Path
-from threading import Thread
+from threading import Lock, Thread
 
 from flask import Flask, jsonify
 
@@ -57,7 +57,16 @@ def create_app(start_socket=True):
         state["status"] = "starting"
         if start_socket:
             atexit.register(close)
-            Thread(target=connect, name="slack-socket-mode", daemon=True).start()
+            startup_lock = Lock()
+            state["startup_started"] = False
+
+            @app.before_request
+            def start_worker_socket():
+                # Start after Gunicorn forks, inside the process serving HTTP.
+                with startup_lock:
+                    if not state["startup_started"]:
+                        state["startup_started"] = True
+                        Thread(target=connect, name="slack-socket-mode", daemon=True).start()
     else:
         logger.warning("Server configuration is incomplete; Slack connection not started")
 
