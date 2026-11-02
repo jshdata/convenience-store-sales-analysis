@@ -122,5 +122,6 @@ python -m cv_store.web.app
 - [데이터 파일과 DB 계약](docs/data_dictionary.md)
 - [운영 준비 및 미확인 사항](docs/operations.md)
 - [Aiven PostgreSQL 연결과 원본 DB 점검](docs/postgresql_setup.md)
+- [편의점 전용 Slack 워크스페이스·앱 설정](docs/slack_setup.md)
 - [파일 이동·해시 기록](docs/file_manifest.json)
 - [과거 구현 보관 정책](archive/README.md)
