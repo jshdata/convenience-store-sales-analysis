@@ -123,6 +123,7 @@ def test_missing_brand_does_not_query(monkeypatch, channels):
 
 
 def test_alerts_include_related_links_and_more_buttons(monkeypatch):
+    monkeypatch.delenv("DASHBOARD_URL", raising=False)
     monkeypatch.setattr(repository, "get_sales_for_date", lambda day: [
         dict(store_type="CU", sum_amount=1000, growth_deviation=1.252),
         dict(store_type="GS25", sum_amount=1000, growth_deviation=0),

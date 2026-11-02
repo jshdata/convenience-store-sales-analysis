@@ -2,14 +2,16 @@
 
 import atexit
 import logging
+from io import BytesIO
 from pathlib import Path
 from threading import Lock, Thread
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_file, abort
 
 from cv_store.config.settings import db_config
 from cv_store.integrations.slack.app import create_app as create_slack_app
 from cv_store.integrations.slack.check import validate_settings
+from cv_store.integrations.slack.home_charts import chart_store
 
 logger = logging.getLogger(__name__)
 
@@ -84,5 +86,16 @@ def create_app(start_socket=True):
     def health():
         status = result()
         return jsonify(status), 200 if status["slack_connected"] else 503
+
+    @app.get("/slack/home-chart/<token>.png")
+    def home_chart(token):
+        # 추측하기 어려운 짧은 수명의 URL만 허용합니다. 이 경로는 DB를 조회하지 않습니다.
+        png = chart_store.get(token) if len(token) == 48 else None
+        if png is None:
+            abort(404)
+        response = send_file(BytesIO(png), mimetype="image/png", max_age=0)
+        response.headers["Cache-Control"] = "private, no-store"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
 
     return app

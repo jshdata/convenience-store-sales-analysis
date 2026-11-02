@@ -20,6 +20,7 @@ Streamlit 대시보드를 추가했으며 과거 Tableau 자료와 링크 기능
 | Tableau 링크 제공 | URL 환경변수 사용. 자동 데이터 갱신 방식은 미확인 |
 | Streamlit 매출 전략 대시보드 | 로컬 실제 DB 조회 검증. 쌍별 증감률 차이·고정 백분위 경계선·이상치별 관련 자료 |
 | Slack → Streamlit 연결 | URL 명령·날짜별 이동 버튼 구현. 공개 배포 후 `DASHBOARD_URL` 설정 필요 |
+| Slack 앱 홈 | 날짜·브랜드 필터, 매출·이상치 요약과 그래프 이미지 갱신. 홈 활성화와 이벤트 구독 필요 |
 | 선택적 고정 파일 적재 도구 | 로컬 파일이 있는 경우에만 사용. 일반 서비스 실행에 불필요 |
 | 예측 | 과거 시연 후 성능 문제로 제외. `archive/prediction/`에 참고 코드 보존 |
 | 회원가입·예시 홈 화면 | 핵심 서비스 연결 미확인. `archive/web_prototype/`에 보존 |
@@ -127,5 +128,6 @@ python -m cv_store.web.app
 - [Aiven PostgreSQL 연결과 원본 DB 점검](docs/postgresql_setup.md)
 - [편의점 전용 Slack 워크스페이스·앱 설정](docs/slack_setup.md)
 - [Streamlit 매출 전략 대시보드](docs/streamlit_dashboard.md)
+- [Slack 앱 홈 대시보드](docs/slack_app_home.md)
 - [파일 이동·해시 기록](docs/file_manifest.json)
 - [과거 구현 보관 정책](archive/README.md)

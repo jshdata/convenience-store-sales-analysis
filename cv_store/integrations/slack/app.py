@@ -2,6 +2,7 @@
 
 from cv_store.config.settings import require_env, slack_channels
 from cv_store.integrations.slack.handlers import register_handlers
+from cv_store.integrations.slack.home import register_home_handlers
 
 
 def create_app():
@@ -17,6 +18,7 @@ def create_app():
         raise ValueError("기능별 Slack 채널 ID는 중복될 수 없습니다.")
     app = App(client=WebClient(token=token, timeout=15, retry_handlers=[]))
     register_handlers(app, channels)
+    register_home_handlers(app)
     return app
 
 
