@@ -55,7 +55,9 @@ Render 무료 서비스가 휴면이면 먼저 서비스 URL을 열어 깨워야
 합성 자료로 날짜 범위 검증, 기존 임계값 경계, 쌍별 차이, 즉시 ack,
 이미지 만료·개수 제한·조회 경로, 홈 블록 구성과 PNG 출력을 확인합니다.
 실제 DB의 2024-11~12 기간으로 Streamlit과 쌍별 기준값이 일치하는지도 확인했습니다.
-Slack 홈 활성화·이벤트 구독·실제 화면 게시와 조작은 배포 후 별도로 확인합니다.
+2026-11-02 Render 배포 후 사용자가 Slack 홈 활성화와 이벤트 구독을 완료했습니다.
+실제 홈 화면·요약·그래프 표시와 날짜·브랜드 변경 후 조회 동작을 확인했습니다.
+배포 시점의 자동 테스트 61개가 통과했습니다.
 
 - [App Home](https://docs.slack.dev/surfaces/app-home/)
 - [views.publish](https://docs.slack.dev/reference/methods/views.publish/)

@@ -1,7 +1,9 @@
 # Streamlit 매출 전략 대시보드
 
 기존 Tableau 자료를 보존하면서 현재 Aiven PostgreSQL을 조회하는 별도 화면입니다.
-로컬 실행과 Community Cloud 배포를 지원합니다. 실제 공개 URL은 배포 후 설정합니다.
+로컬 실행과 Community Cloud 배포를 지원합니다.
+2026-11-02 Community Cloud 배포와 Render의 `DASHBOARD_URL` 설정을 완료했습니다.
+[공개 대시보드](https://convenience-store-sales-analysis-srfzzkpg6ixhfihmvgej6l.streamlit.app/)
 
 ## 로컬 실행
 
