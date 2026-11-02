@@ -1,4 +1,8 @@
-"""기존 growth_deviation 임계값 판정. 값의 산출·통계 학습은 수행하지 않습니다."""
+"""2024년 전체 편차의 5·95백분위수에 대응하는 고정 임계값 판정.
+
+기존 코드의 값은 재계산한 백분위수를 소수 셋째 자리로 반올림한 값과
+6개 모두 일치합니다. 실행 중 재학습하지 않으며 근거는 docs/anomaly_method.md 참고.
+"""
 
 from cv_store.database.repository import normalize_store
 
