@@ -5,7 +5,7 @@ import logging
 
 from cv_store.database import repository
 from cv_store.dashboard.model import BRANDS, LABELS, PAIRS, pairwise_growth, pairwise_thresholds, period_frame, safe_link, sales_frame, sales_shares
-from cv_store.dashboard.settings import initial_filters, load_dashboard_secrets
+from cv_store.dashboard.settings import initial_filters, load_dashboard_secrets, simulation_cutoff
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +53,13 @@ def main():
         st.stop()
 
     first, last = frame["sale_date"].min().date(), frame["sale_date"].max().date()
+    cutoff = simulation_cutoff(st.query_params)
+    if cutoff:
+        last = min(last, cutoff)
+        st.info(f"시뮬레이션 기준일: {cutoff:%Y-%m-%d} · 조회 범위는 이 날짜까지입니다. 고정 기준은 2024년 전체로 산출한 회고적 시연입니다.")
+        if last < first:
+            st.info("이 기준일까지 조회 가능한 매출이 없습니다.")
+            st.stop()
     defaults, requested_brand, requested_event = initial_filters(first, last, st.query_params)
     chosen = st.sidebar.date_input(
         "조회 기간", value=defaults, min_value=first, max_value=last,

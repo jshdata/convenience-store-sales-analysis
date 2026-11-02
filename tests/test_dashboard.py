@@ -132,3 +132,23 @@ def test_dashboard_database_error_does_not_expose_credentials(monkeypatch):
     assert not app.exception
     assert "synthetic-password" not in app.error[0].value
     st.cache_data.clear()
+
+
+def test_simulation_dashboard_cannot_show_after_cutoff(monkeypatch, dashboard_rows):
+    st = pytest.importorskip("streamlit")
+    pytest.importorskip("plotly")
+    from streamlit.testing.v1 import AppTest
+
+    st.cache_data.clear()
+    for row in dashboard_rows:
+        if row["store_type"] == "CU":
+            row["growth_deviation"] = 2
+    monkeypatch.setattr(repository, "get_dashboard_sales", lambda: dashboard_rows)
+    monkeypatch.setattr(repository, "get_dashboard_context", lambda *args: {"news": [], "videos": []})
+    app = AppTest.from_file("streamlit_app.py")
+    app.query_params.update(brand="CU", start="2024-11-20", end="2024-11-22", as_of="2024-11-21")
+    app.run(timeout=20)
+    assert not app.exception
+    assert app.date_input[0].value == (date(2024, 11, 20), date(2024, 11, 21))
+    assert app.dataframe[0].value["날짜"].max().date() == date(2024, 11, 21)
+    st.cache_data.clear()

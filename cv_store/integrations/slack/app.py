@@ -3,6 +3,7 @@
 from cv_store.config.settings import require_env, slack_channels
 from cv_store.integrations.slack.handlers import register_handlers
 from cv_store.integrations.slack.home import register_home_handlers
+from cv_store.simulation.home import register_handlers as register_simulation_handlers
 
 
 def create_app():
@@ -19,6 +20,7 @@ def create_app():
     app = App(client=WebClient(token=token, timeout=15, retry_handlers=[]))
     register_handlers(app, channels)
     register_home_handlers(app)
+    register_simulation_handlers(app)
     return app
 
 

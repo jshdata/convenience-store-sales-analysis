@@ -7,7 +7,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from cv_store.database.repository import normalize_store, validate_date
 
 
-def dashboard_url(day=None, store=None):
+def dashboard_url(day=None, store=None, as_of=None):
     base = os.environ.get("DASHBOARD_URL", "").strip()
     if not base:
         return None
@@ -22,6 +22,11 @@ def dashboard_url(day=None, store=None):
             event = date.fromisoformat(validate_date(day))
             query.update(event=event.isoformat(), start=(event - timedelta(days=14)).isoformat(),
                          end=(event + timedelta(days=14)).isoformat())
+        if as_of:
+            cutoff = validate_date(as_of)
+            query["as_of"] = cutoff
+            if query.get("end", cutoff) > cutoff:
+                query["end"] = cutoff
         return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
     except ValueError:
         return None

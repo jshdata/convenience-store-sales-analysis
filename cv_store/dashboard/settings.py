@@ -39,3 +39,10 @@ def initial_filters(first, last, query):
     except (ValueError, TypeError):
         pass
     return (start, end), brand, event
+
+
+def simulation_cutoff(query):
+    try:
+        return date.fromisoformat(query.get("as_of", ""))
+    except (ValueError, TypeError):
+        return None

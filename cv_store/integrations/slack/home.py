@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta, timezone
 import logging
+import json
 import os
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -37,6 +38,9 @@ def external_url(filters):
 def build_view(filters, snapshot=None, image_url=None, error=None, loading=False):
     blocks = [{"type": "header", "text": plain("세븐일레븐 매출 전략")},
               section("날짜와 브랜드를 선택하고 *조회*를 눌러주세요. 매출·편차와 관련 자료를 이 홈 화면에서 확인할 수 있습니다.")]
+    blocks.append({"type": "actions", "elements": [
+        {"type": "button", "action_id": "simulation_open", "text": plain("날짜 지정 시뮬레이션"), "value": "open"},
+    ]})
     blocks.append({"type": "actions", "block_id": "home_dates", "elements": [
         {"type": "datepicker", "action_id": "home_start", "initial_date": filters.start, "placeholder": plain("시작일")},
         {"type": "datepicker", "action_id": "home_end", "initial_date": filters.end, "placeholder": plain("종료일")},
@@ -130,7 +134,18 @@ def update_home(client, user, filters):
 def register_home_handlers(app):
     def opened(event, client):
         if event.get("tab") == "home":
-            update_home(client, event["user"], filters_from_view(event.get("view") or {}))
+            view = event.get("view") or {}
+            try:
+                metadata = json.loads(view.get("private_metadata") or "{}")
+            except ValueError:
+                metadata = {}
+            if not isinstance(metadata, dict):
+                metadata = {}
+            if metadata.get("surface") == "simulation":
+                from cv_store.simulation.home import show, form_values
+                show(client, event["user"], metadata.get("run_id"), form_values(view))
+            else:
+                update_home(client, event["user"], filters_from_view(view))
 
     def refresh(ack, body, client):
         ack()

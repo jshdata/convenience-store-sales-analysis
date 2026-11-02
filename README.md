@@ -21,6 +21,7 @@ Streamlit 대시보드를 추가했으며 과거 Tableau 자료와 링크 기능
 | Streamlit 매출 전략 대시보드 | Community Cloud 배포. 로컬 실제 DB 조회 및 쌍별 증감률·고정 경계선 검증 |
 | Slack → Streamlit 연결 | 공개 URL 설정·서버 반영 완료. 대시보드 명령과 새 알림의 날짜별 이동 버튼 |
 | Slack 앱 홈 | 실제 홈 화면·날짜·브랜드 조회·그래프 표시와 갱신 확인 완료 |
+| 날짜 지정 시뮬레이션 | 기간 미리보기·하루 진행·실행별 발송 이력 구현. 원본 매출은 변경하지 않음 |
 | 선택적 고정 파일 적재 도구 | 로컬 파일이 있는 경우에만 사용. 일반 서비스 실행에 불필요 |
 | 예측 | 과거 시연 후 성능 문제로 제외. `archive/prediction/`에 참고 코드 보존 |
 | 회원가입·예시 홈 화면 | 핵심 서비스 연결 미확인. `archive/web_prototype/`에 보존 |
@@ -130,5 +131,6 @@ python -m cv_store.web.app
 - [편의점 전용 Slack 워크스페이스·앱 설정](docs/slack_setup.md)
 - [Streamlit 매출 전략 대시보드](docs/streamlit_dashboard.md)
 - [Slack 앱 홈 대시보드](docs/slack_app_home.md)
+- [날짜 지정 시뮬레이션](docs/simulation.md)
 - [파일 이동·해시 기록](docs/file_manifest.json)
 - [과거 구현 보관 정책](archive/README.md)
