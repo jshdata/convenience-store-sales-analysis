@@ -102,3 +102,17 @@ def test_dictionary_cursor_maps_columns_and_null():
     cursor = db._DictionaryCursor(raw)
     assert cursor.fetchone() == {"name": "CU", "count": 1}
     assert cursor.fetchone() is None
+
+
+def test_inline_ca_support_keeps_certificate_verification(monkeypatch):
+    import pg8000.dbapi
+    monkeypatch.setenv("DB_SSLROOTCERT_PEM", "synthetic-inline-ca")
+    monkeypatch.setenv("DB_SSLROOTCERT", "/nonexistent/local/path.pem")
+    context = Mock()
+    create = Mock(return_value=context)
+    monkeypatch.setattr(db.ssl, "create_default_context", create)
+    connect = Mock()
+    monkeypatch.setattr(pg8000.dbapi, "connect", connect)
+    assert db.connect_db() is connect.return_value
+    create.assert_called_once_with(cadata="synthetic-inline-ca")
+    assert connect.call_args.kwargs["ssl_context"] is context

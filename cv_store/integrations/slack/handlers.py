@@ -6,6 +6,7 @@ import re
 
 from cv_store.database import repository
 from cv_store.integrations.slack.messages import format_news_links, format_ytb_links
+from cv_store.integrations.slack.dashboard import dashboard_url
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,14 @@ def handle_mention(event, say, channels):
     channel = event.get("channel")
     stores = {channels[name]: store for name, store in
               (("CU", "CU"), ("GS25", "GS25"), ("SEVEN", "seven")) if channels[name]}
+    if text == "대시보드" and channel and channel in channels.values():
+        url = dashboard_url(store=stores.get(channel))
+        if url:
+            say(f"📊 매출 전략 대시보드: {url}")
+            return
+        if not os.environ.get("TABLEAU_DASHBOARD_URL", "").strip():
+            say("대시보드 공개 URL이 아직 설정되지 않았습니다. DASHBOARD_URL 설정이 필요합니다.")
+            return
     if channel == channels["TABLEAU"] and text in ("대시보드", "티피"):
         key = "TABLEAU_DASHBOARD_URL" if text == "대시보드" else "TABLEAU_TP_URL"
         url = os.environ.get(key, "").strip()

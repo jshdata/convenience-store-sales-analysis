@@ -1,5 +1,6 @@
 # Credentials: example is intentionally tracked.
 .env
+.streamlit/secrets.toml
 .env.*
 !.env.example
 .venv/

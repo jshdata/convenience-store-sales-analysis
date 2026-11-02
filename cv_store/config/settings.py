@@ -44,6 +44,9 @@ def db_config():
         if mode not in {"verify-full", "verify-ca", "require"}:
             raise ValueError("PostgreSQL 연결에는 SSL 인증이 필요합니다.")
         config.update(dbname=require_env("DB_NAME"), sslmode=mode)
+        pem = os.environ.get("DB_SSLROOTCERT_PEM", "").strip()
+        if pem:
+            config["sslrootcert_pem"] = pem
         ca = os.environ.get("DB_SSLROOTCERT", "").strip()
         if ca:
             path = Path(ca)

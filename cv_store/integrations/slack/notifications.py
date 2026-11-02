@@ -3,6 +3,7 @@
 from cv_store.analysis.anomalies import classify_anomaly
 from cv_store.database import repository
 from cv_store.integrations.slack.messages import format_news_links, format_ytb_links
+from cv_store.integrations.slack.dashboard import dashboard_url
 
 
 def send_anomaly_alerts(client, channel, day):
@@ -22,6 +23,13 @@ def send_anomaly_alerts(client, channel, day):
             repository.get_news_links_by_date_and_store(day, store), day, store
         )
         label = "🚨 매출 급등 감지!" if kind == "high" else "⚠️ 매출 급감 감지!"
+        attachments = (video_buttons or []) + (news_buttons or [])
+        url = dashboard_url(day, store)
+        if url:
+            attachments.append({
+                "fallback": "대시보드에서 해당 날짜 확인",
+                "actions": [{"type": "button", "text": "대시보드에서 확인", "url": url}],
+            })
         client.chat_postMessage(
             channel=channel,
             text=(
@@ -30,7 +38,7 @@ def send_anomaly_alerts(client, channel, day):
                 f"📊 편차 (growth_deviation): {row['growth_deviation']:.2f}%\n\n"
                 f"{videos}\n\n{news}"
             ),
-            attachments=(video_buttons or []) + (news_buttons or []),
+            attachments=attachments,
             unfurl_links=True,
             unfurl_media=True,
         )

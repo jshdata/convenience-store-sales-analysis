@@ -26,6 +26,10 @@ URL은 사용 가능 여부에 따라 달라질 수 있고 GitHub 이름과 동�
 Tableau 재연결 전에는 마지막 채널과 URL 설정을 비워도 됩니다. 각 채널에는 봇을 초대해야 합니다.
 설정에는 이름 대신 채널 상세 화면에서 복사한 실제 채널 ID를 넣습니다.
 
+Streamlit 대시보드는 별도 채널 없이 기존 설정 채널에서 `@봇 대시보드`로 열 수 있습니다.
+공개 배포 후 `DASHBOARD_URL`을 설정하며, 이후 이상치 알림에는 해당 날짜·브랜드로
+이동하는 버튼이 추가됩니다. [배포·연결 방법](streamlit_dashboard.md)을 참고합니다.
+
 ## 2. 앱 생성
 
 1. [Slack 앱 관리](https://api.slack.com/apps) → **Create New App → From a manifest**.

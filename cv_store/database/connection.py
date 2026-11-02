@@ -11,7 +11,10 @@ def connect_db():
     if db_engine() == "postgresql":
         import pg8000.dbapi
 
-        context = ssl.create_default_context(cafile=config.get("sslrootcert"))
+        if config.get("sslrootcert_pem"):
+            context = ssl.create_default_context(cadata=config["sslrootcert_pem"])
+        else:
+            context = ssl.create_default_context(cafile=config.get("sslrootcert"))
         if config["sslmode"] != "verify-full":
             raise ValueError("Aiven PostgreSQL은 DB_SSLMODE=verify-full을 사용해주세요.")
         return pg8000.dbapi.connect(
