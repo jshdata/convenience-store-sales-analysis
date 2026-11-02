@@ -32,11 +32,14 @@ def create_app(start_socket=True):
         from cv_store.config.settings import require_env
 
         try:
-            handler = SocketModeHandler(create_slack_app(), require_env("SLACK_APP_TOKEN"))
+            logger.warning("Slack startup: validating bot credentials")
+            slack_app = create_slack_app()
+            logger.warning("Slack startup: opening Socket Mode connection")
+            handler = SocketModeHandler(slack_app, require_env("SLACK_APP_TOKEN"))
             state["handler"] = handler
             handler.connect()
             state["status"] = "connected"
-            logger.info("Slack Socket Mode connected")
+            logger.warning("Slack Socket Mode connected")
         except Exception as exc:
             # 인증 응답/접속 문자열을 포함할 수 있는 예외 본문은 로그에 쓰지 않습니다.
             state["status"] = "connection_failed"

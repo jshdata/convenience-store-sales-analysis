@@ -6,6 +6,7 @@ from cv_store.integrations.slack.handlers import register_handlers
 
 def create_app():
     from slack_bolt import App
+    from slack_sdk import WebClient
 
     token = require_env("SLACK_BOT_TOKEN")
     channels = slack_channels()
@@ -14,7 +15,7 @@ def create_app():
         raise ValueError("최소 하나의 SLACK_CHANNEL_* 설정이 필요합니다.")
     if len(configured) != len(set(configured)):
         raise ValueError("기능별 Slack 채널 ID는 중복될 수 없습니다.")
-    app = App(token=token)
+    app = App(client=WebClient(token=token, timeout=15, retry_handlers=[]))
     register_handlers(app, channels)
     return app
 
