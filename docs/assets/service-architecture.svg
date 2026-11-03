@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="790" viewBox="0 0 1200 790" role="img" aria-labelledby="title desc">
+<title id="title">데이터에서 전략의 단서까지</title><desc id="desc">보존된 매출과 콘텐츠를 조회하고, 이상 변동을 Slack과 대시보드에서 함께 살펴봅니다.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#53796b" stroke-width="1.5"/></marker></defs>
+<style>text{font-family:'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;fill:#243d35}.title{font-size:30px;font-weight:700}.sub{font-size:16px;fill:#60776d}.heading{font-size:21px;font-weight:700}.body{font-size:17px}.small{font-size:15px;fill:#60776d}.tag{font-size:13px;font-weight:700;letter-spacing:1px;fill:#447761}.line{fill:none;stroke:#53796b;stroke-width:2;marker-end:url(#arrow)}</style>
+<rect width="1200" height="790" rx="24" fill="#f5f8f5"/>
+<text x="44" y="46" class="tag">SEVEN-ELEVEN · SALES INTELLIGENCE</text>
+<text x="44" y="91" class="title">데이터에서 전략의 단서까지</text><text x="44" y="124" class="sub">보존된 매출과 콘텐츠를 조회하고, 이상 변동을 Slack과 대시보드에서 함께 살펴봅니다.</text>
+<rect x="44" y="174" width="310" height="245" rx="16" fill="#ffffff" stroke="#cbd9d0"/>
+<text x="68" y="206" class="tag">01 / DATA · AIVEN</text><text x="68" y="239" class="heading">PostgreSQL</text>
+<text x="68" y="272" class="body">all_sale · 매출 / 증감률 / 편차</text>
+<text x="68" y="299" class="body">news_search · 관련 뉴스</text>
+<text x="68" y="326" class="body">ytb_video · 관련 영상</text>
+<text x="68" y="353" class="body">원본 데이터는 저장소에 미포함</text>
+<rect x="414" y="174" width="330" height="245" rx="16" fill="#ffffff" stroke="#cbd9d0"/>
+<text x="438" y="206" class="tag">02 / BOT SERVER · RENDER</text><text x="438" y="239" class="heading">조회 · 분석 · 알림</text>
+<text x="438" y="272" class="body">브랜드 증감률 − 3사 평균</text>
+<text x="438" y="299" class="body">2024년 고정 5·95백분위 판정</text>
+<text x="438" y="326" class="body">해당 날짜의 뉴스·영상 연결</text>
+<text x="438" y="353" class="body">Socket Mode로 Slack과 연결</text>
+<rect x="804" y="174" width="352" height="245" rx="16" fill="#eaf3ed" stroke="#cbd9d0"/>
+<text x="828" y="206" class="tag">03 / EXPERIENCE · SLACK</text><text x="828" y="239" class="heading">세븐일레븐 매출 전략</text>
+<text x="828" y="272" class="body">멘션으로 매출·콘텐츠 조회</text>
+<text x="828" y="299" class="body">앱 홈에서 날짜·브랜드 선택</text>
+<text x="828" y="326" class="body">요약 · 그래프 이미지 갱신</text>
+<text x="828" y="353" class="body">이상치 알림에서 상세 분석 이동</text>
+<path d="M354 290H410" class="line"/>
+<path d="M744 290H800" class="line"/>
+<rect x="44" y="502" width="310" height="190" rx="16" fill="#edf1f8" stroke="#cbd9d0"/>
+<text x="68" y="534" class="tag">REPLAY / MANUAL</text><text x="68" y="567" class="heading">날짜 지정 시뮬레이션</text>
+<text x="68" y="600" class="body">하루씩 과거 데이터 재생</text>
+<text x="68" y="627" class="body">진행 상태·발송 이력만 저장</text>
+<text x="68" y="654" class="body">매출 원본은 변경하지 않음</text>
+<rect x="414" y="502" width="330" height="190" rx="16" fill="#ffffff" stroke="#cbd9d0"/>
+<text x="438" y="534" class="tag">STATE / AIVEN</text><text x="438" y="567" class="heading">simulation 스키마</text>
+<text x="438" y="600" class="body">runs · 실행별 기간과 진행 상태</text>
+<text x="438" y="627" class="body">events · 알림 발송 이력</text>
+<text x="438" y="654" class="body">재시작 후에도 상태 조회 가능</text>
+<rect x="804" y="502" width="352" height="190" rx="16" fill="#eaf3ed" stroke="#cbd9d0"/>
+<text x="828" y="534" class="tag">DETAIL / STREAMLIT</text><text x="828" y="567" class="heading">대화형 대시보드</text>
+<text x="828" y="600" class="body">매출 추이 · 3사 내 매출 비중</text>
+<text x="828" y="627" class="body">증감률 차이 · 이상치 · 관련 자료</text>
+<text x="828" y="654" class="body">확대·호버로 상세 탐색</text>
+<path d="M199 502V454H490V423" class="line"/>
+<path d="M354 597H410" class="line"/>
+<path d="M980 419V498" class="line"/>
+<text x="996" y="462" class="small">날짜·브랜드 링크</text>
+<path d="M804 669H773V743H24V348H40" class="line"/>
+<rect x="408" y="727" width="377" height="28" rx="14" fill="#f5f8f5"/><text x="424" y="747" class="small">Streamlit도 같은 DB를 직접 조회합니다</text>
+</svg>

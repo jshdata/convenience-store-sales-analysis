@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="718" viewBox="0 0 1200 718" role="img" aria-labelledby="title desc">
+<title id="title">과거의 이상치 알림을 하루씩 재현</title><desc id="desc">Slack 앱 홈에서 날짜를 지정하고, 버튼을 눌러 하루 단위로 진행하는 수동 시뮬레이션입니다.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#53796b" stroke-width="1.5"/></marker></defs>
+<style>text{font-family:'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;fill:#243d35}.title{font-size:30px;font-weight:700}.sub{font-size:16px;fill:#60776d}.heading{font-size:21px;font-weight:700}.body{font-size:17px}.small{font-size:15px;fill:#60776d}.tag{font-size:13px;font-weight:700;letter-spacing:1px;fill:#447761}.line{fill:none;stroke:#53796b;stroke-width:2;marker-end:url(#arrow)}</style>
+<rect width="1200" height="718" rx="24" fill="#f5f8f5"/>
+<text x="44" y="46" class="tag">SEVEN-ELEVEN · SALES INTELLIGENCE</text>
+<text x="44" y="91" class="title">과거의 이상치 알림을 하루씩 재현</text><text x="44" y="124" class="sub">Slack 앱 홈에서 날짜를 지정하고, 버튼을 눌러 하루 단위로 진행하는 수동 시뮬레이션입니다.</text>
+<rect x="44" y="181" width="254" height="181" rx="16" fill="#ffffff" stroke="#cbd9d0"/>
+<text x="68" y="213" class="tag">01 / SELECT</text><text x="68" y="246" class="heading">기간·브랜드 선택</text>
+<text x="68" y="279" class="body">시작일 / 종료일 지정</text>
+<text x="68" y="306" class="body">3사 모두 또는 브랜드 선택</text>
+<rect x="330" y="181" width="254" height="181" rx="16" fill="#ffffff" stroke="#cbd9d0"/>
+<text x="354" y="213" class="tag">02 / PREVIEW</text><text x="354" y="246" class="heading">기간 미리보기</text>
+<text x="354" y="279" class="body">예상 이상치 목록 확인</text>
+<text x="354" y="306" class="body">이 단계에서는 발송 없음</text>
+<rect x="616" y="181" width="254" height="181" rx="16" fill="#ffffff" stroke="#cbd9d0"/>
+<text x="640" y="213" class="tag">03 / CREATE</text><text x="640" y="246" class="heading">새 실행 만들기</text>
+<text x="640" y="279" class="body">기간·대상·임계값 저장</text>
+<text x="640" y="306" class="body">실행 ID와 진행 상태 생성</text>
+<rect x="902" y="181" width="254" height="181" rx="16" fill="#eaf3ed" stroke="#cbd9d0"/>
+<text x="926" y="213" class="tag">04 / ADVANCE</text><text x="926" y="246" class="heading">하루 진행</text>
+<text x="926" y="279" class="body">다음 날짜의 편차 판정</text>
+<text x="926" y="306" class="body">이상치가 있으면 알림 발송</text>
+<path d="M298 269H326" class="line"/>
+<path d="M584 269H612" class="line"/>
+<path d="M870 269H898" class="line"/>
+<rect x="44" y="430" width="520" height="178" rx="16" fill="#ffffff" stroke="#cbd9d0"/>
+<text x="68" y="462" class="tag">DEMO / 2024-11-20 → 11-22</text><text x="68" y="495" class="heading">3일의 데이터로 알림 흐름 확인</text>
+<text x="68" y="528" class="body">11월 20일  ·  CU 급감 / GS25 급등</text>
+<text x="68" y="555" class="body">11월 21일  ·  CU 급등 / GS25 급감</text>
+<text x="68" y="582" class="body">11월 22일  ·  알림 없이 날짜만 진행</text>
+<rect x="616" y="430" width="540" height="178" rx="16" fill="#ffffff" stroke="#cbd9d0"/>
+<text x="640" y="462" class="tag">SAVE &amp; EXPLORE</text><text x="640" y="495" class="heading">진행 상태 저장 → 상세 분석</text>
+<text x="640" y="528" class="body">실행별 발송 이력 저장 · 중복 / 오래된 버튼 방지</text>
+<text x="640" y="555" class="body">알림의 링크로 진행일까지의 대시보드 확인</text>
+<text x="640" y="582" class="body">다음 버튼을 누르면 다음 하루 진행</text>
+<path d="M1029 362V426" class="line"/>
+<text x="44" y="657" class="small">발송 결과가 불확실하면 자동 재전송하지 않고 멈춥니다. 새 실행을 만들면 같은 기간을 다시 시연할 수 있습니다.</text>
+<text x="44" y="685" class="small">2024년 전체로 산출한 고정 임계값을 쓰는 과거 재현이며, 미래 정보를 배제한 예측 성능 평가는 아닙니다.</text></svg>

@@ -32,6 +32,11 @@ Streamlit은 그래프 확대·마우스 오버 등 상세 탐색을, Slack 홈�
 
 ## 서비스 흐름
 
+![Aiven 데이터베이스, Render Slack 봇, Slack 앱과 Streamlit 대시보드의 서비스 구성도](docs/assets/service-architecture.svg)
+
+<details>
+<summary>텍스트 흐름도 보기</summary>
+
 ```mermaid
 flowchart LR
     DB[(Aiven PostgreSQL)] --> Analysis[매출 조회 · 편차 판정]
@@ -43,6 +48,8 @@ flowchart LR
     Content[보존된 뉴스 · 유튜브] --> Slack
     Content --> Dashboard
 ```
+
+</details>
 
 `all_sale`의 기존 매출·증감률·편차와 `news_search`, `ytb_video`를 조회합니다.
 시뮬레이션에서도 매출을 추가하거나 삭제하지 않고 **기준 날짜만 하루씩 진행**합니다.
@@ -68,6 +75,8 @@ flowchart LR
 자세한 수치·검증 근거는 [이상치 판정 방법](docs/anomaly_method.md)에 있습니다.
 
 ## 날짜 지정 시뮬레이션
+
+![날짜 선택부터 미리보기, 실행 생성, 하루 진행과 알림 발송까지의 시뮬레이션 흐름](docs/assets/simulation-flow.svg)
 
 Slack 봇의 **홈 → 날짜 지정 시뮬레이션**에서 실행합니다.
 
