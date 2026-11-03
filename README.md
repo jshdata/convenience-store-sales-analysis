@@ -32,24 +32,37 @@ Streamlit은 그래프 확대·마우스 오버 등 상세 탐색을, Slack 홈�
 
 ## 서비스 흐름
 
-![Aiven 데이터베이스, Render Slack 봇, Slack 앱과 Streamlit 대시보드의 서비스 구성도](docs/assets/service-architecture.svg)
-
-<details>
-<summary>텍스트 흐름도 보기</summary>
-
 ```mermaid
 flowchart LR
-    DB[(Aiven PostgreSQL)] --> Analysis[매출 조회 · 편차 판정]
-    Analysis --> Slack[Slack 멘션 · 앱 홈 · 알림]
-    DB --> Dashboard[Streamlit 대시보드]
-    Slack -->|날짜 · 브랜드 링크| Dashboard
-    Replay[날짜 지정 시뮬레이션] --> Analysis
-    Replay -->|진행 · 발송 이력만 저장| State[(simulation 스키마)]
-    Content[보존된 뉴스 · 유튜브] --> Slack
-    Content --> Dashboard
-```
+    subgraph Aiven["Aiven PostgreSQL · 데이터 보관"]
+        Sales[(매출 · 증감률 · 편차)]
+        Content[(뉴스 · 유튜브)]
+        State[(시뮬레이션 진행 · 발송 이력)]
+    end
+    subgraph Render["Render · Slack 봇 서버"]
+        Analysis[매출 조회 · 고정 5·95백분위 판정]
+        Related[해당 날짜의 관련 콘텐츠 조회]
+        Replay[날짜 지정 · 하루씩 재생]
+    end
+    Slack["Slack<br/>멘션 조회 · 앱 홈 · 이상치 알림"]
+    Dashboard["Streamlit<br/>매출 추이 · 경쟁사 비교 · 관련 자료"]
 
-</details>
+    Sales --> Analysis --> Slack
+    Content --> Related --> Slack
+    Slack -->|사용자가 시뮬레이션 진행| Replay
+    Replay --> Analysis
+    Replay -->|진행 · 발송 결과 저장| State
+    Sales --> Dashboard
+    Content --> Dashboard
+    Slack -->|날짜 · 브랜드를 담은 링크| Dashboard
+
+    classDef data fill:#eef3f8,stroke:#6482a0,color:#243d35
+    classDef process fill:#f5f8f5,stroke:#81988b,color:#243d35
+    classDef screen fill:#e7f2eb,stroke:#447761,color:#243d35
+    class Sales,Content,State data
+    class Analysis,Related,Replay process
+    class Slack,Dashboard screen
+```
 
 `all_sale`의 기존 매출·증감률·편차와 `news_search`, `ytb_video`를 조회합니다.
 시뮬레이션에서도 매출을 추가하거나 삭제하지 않고 **기준 날짜만 하루씩 진행**합니다.
@@ -76,7 +89,33 @@ flowchart LR
 
 ## 날짜 지정 시뮬레이션
 
-![날짜 선택부터 미리보기, 실행 생성, 하루 진행과 알림 발송까지의 시뮬레이션 흐름](docs/assets/simulation-flow.svg)
+```mermaid
+flowchart TD
+    Start([Slack 앱 홈에서 시작]) --> Select[기간 · 브랜드 선택]
+    Select --> Preview[기간 미리보기 · 발송 없음]
+    Preview --> Create[새 실행 생성 · 기간과 임계값 저장]
+    Create --> Click[사용자가 하루 진행 버튼 클릭]
+    Click --> Read[다음 날짜의 매출 편차 조회]
+    Read --> Check{고정 5·95백분위 경계 밖인가?}
+    Check -->|상한 이상 · 하한 이하| Send[시뮬레이션 표시와 함께 Slack 알림]
+    Check -->|정상 · 결측| Progress[처리 날짜와 진행 상태 저장]
+    Send --> Result{발송 결과 확인}
+    Result -->|성공| Receipt[(발송 이력 저장)]
+    Receipt --> Progress
+    Result -->|불확실 · 오류| Stop([중단 · 자동 재전송 없음])
+    Progress --> End{종료일까지 처리했는가?}
+    End -->|아니요| Wait[다음 버튼 클릭 대기]
+    Wait --> Click
+    End -->|예| Done([실행 완료])
+    Send -.->|진행일까지의 상세 분석 링크| Dashboard[Streamlit 대시보드]
+
+    classDef data fill:#eef3f8,stroke:#6482a0,color:#243d35
+    classDef decision fill:#fff5df,stroke:#ad8c48,color:#243d35
+    classDef screen fill:#e7f2eb,stroke:#447761,color:#243d35
+    class Receipt data
+    class Check,Result,End decision
+    class Start,Send,Dashboard,Done screen
+```
 
 Slack 봇의 **홈 → 날짜 지정 시뮬레이션**에서 실행합니다.
 
