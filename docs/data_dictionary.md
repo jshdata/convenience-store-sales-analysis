@@ -15,12 +15,36 @@
 
 ## DB를 사용하는 실행 방식
 
-보존된 로컬 DB를 서비스의 데이터 원천으로 사용하며 매번 Excel·CSV를 적재할 필요가 없습니다.
+보존된 로컬 MariaDB의 9개 테이블을 Aiven PostgreSQL로 이전하고 모든 행 값의 일치를 검증했습니다.
+현재 서비스는 Aiven DB를 조회하며 매번 Excel·CSV를 적재할 필요가 없습니다.
 `cv_store/database/connection.py`와 `repository.py`가 이미 연결·조회 책임을 담당합니다.
-DB 접속은 `DB_*` 환경변수로 설정하며 이번 정리에서는 실제 DB에 접속하지 않았습니다.
+DB 접속은 `DB_*` 환경변수와 CA 인증서로 설정합니다. 인증 정보와 원본 행은 공개하지 않습니다.
 
-사용자가 제공한 로컬 DB 화면에서 `all_sale`과 일자·브랜드·총매출·성별/연령별 매출 열을
-확인했습니다. 화면만으로 컬럼 자료형·전체 25열의 이름·계산식·키 제약은 확정할 수 없습니다.
+보존된 매출 범위는 **2024-01-01~2025-02-06, 403일 × 3개 브랜드 = 1,209행**입니다.
+프로젝트 당시 약 1년 분량을 제공받았다는 설명과 현재 DB의 보존 범위는 구분합니다.
+현재 스키마는 [PostgreSQL DDL](../database/schema/postgresql.sql)에 공개하고 있습니다.
+
+## 데이터 목록과 확인 수준
+
+아래는 이전한 9개 원본 테이블과 이후 생성한 시뮬레이션 테이블의 구분입니다.
+현재 조회 기능의 연결 여부와 과거 데이터의 보존 가치는 별개입니다.
+
+| 테이블 | 데이터 성격·출처 근거 | 주요 열 | 현재 활용·확인할 점 |
+|---|---|---|---|
+| `all_sale` | 멘토를 통해 제공받은 비식별 카드 기반 매출 집계와 분석용 가공 열 | `sale_date`, `store_type`, `sum_amount`, `store_count`, 성별·연령대별 매출, 증감률·편차 | 핵심 분석·알림·시뮬레이션에 사용. 원천 기관·최초 가공 과정은 미확인 |
+| `news_search` | 기존 네이버 기사 검색 기능과 보존된 기사 데이터 | `news_title`, `news_url`, `news_summary`, `news_date`, `news_agency`, `store_type` | 날짜·브랜드별 기사 연결. 최초 API·검색 조건·수집 주기는 미확인 |
+| `ytb_video` | 기존 YouTube 조회 기능과 보존된 영상 데이터 | `video_id`, `video_title`, `published_at`, `video_url`, `channel_id`, `store_type` | 날짜·브랜드별 영상 연결. 조회 수 등은 보존된 값이며 실시간 값이 아님 |
+| `ytb_channel` | 보존된 YouTube 채널 데이터 | `channel_id`, `channel_title`, `channel_view_count`, `subscriber_count`, `video_count` | 현재 핵심 조회에는 직접 사용하지 않음. 원래 적재 과정 추가 확인 필요 |
+| `event_img` | 공식 행사 페이지 수집 코드 보존 | `event_title`, `img_url`, `start_date`, `end_date`, `store_type` | 행사 자료 보존. 현재 핵심 조회 화면에는 미연결 |
+| `event_plus` | Pyony 브랜드별 상품 수집 코드 보존 | `plus_title`, `plus_price`, `plus_event_price`, `plus_type`, `update_date`, `store_type` | 증정·행사 상품 자료 보존. 사이트 변경에 따른 재검증 필요 |
+| `naver_search_trend` | 기존 검색 트렌드 자료·파일 적재 코드 보존 | `trend_date`, `seven`, `gs25`, `cu`, `cs` | 현재 핵심 서비스에는 미연결. 검색어·정규화 기준·수집 조건 미확인 |
+| `people` | 원본 DB에 있던 보조 테이블. 원천 출처 미확인 | `region`, `people`, `man`, `woman`, 브랜드별 열, `cleanaddr`, `x`, `y`, `sale_date` | 열 이름으로 지역·인구·좌표 정보를 확인. 단위·결합 키·브랜드별 열 의미는 추가 확인 |
+| `hospital_sale` | 원본 DB에 있던 보존 테이블. 원천 출처 미확인 | `store_type`, `sale`, `store_count`, `sale_date` | 핵심 서비스에는 미연결. 이름만으로 업종이나 매출 단위를 확정하지 않음 |
+| `simulation.runs` | 현재 서비스가 생성하는 운영 상태 | 실행 ID, 소유자, 기간·대상·임계값, 다음 날짜·진행 상태 | 원본 매출과 분리. 사용자가 새 실행을 만들 때 저장 |
+| `simulation.events` | 현재 서비스가 생성하는 발송 이력 | 실행 ID, 날짜·브랜드, 편차·금액, 발송 상태·Slack 메시지 식별자 | 동일 실행의 중복 발송 방지와 결과 확인. 외부 수집 데이터가 아님 |
+
+이 목록은 데이터 원본을 공개하지 않고 구조·출처·활용 범위만 설명합니다.
+시뮬레이션 상태의 실제 소유자·메시지 식별자 등 운영 값도 공개하지 않습니다.
 
 ## 코드가 기대하는 최소 DB 계약
 
@@ -35,7 +59,7 @@ DB 접속은 `DB_*` 환경변수로 설정하며 이번 정리에서는 실제 D
 | `news_search` | `news_url`, `store_type`, `news_date` |
 | `event_img` | `idx`, `img_url`, `start_date`, `end_date`, `event_title`, `store_type` |
 | `event_plus` | `store_type`, `update_date`, `plus_title`, `plus_price`, `plus_event_price`, `plus_type` |
-| `naver_search_trend` | `DATE`, `seven`, `GS25`, `CU`, `cs` |
+| `naver_search_trend` | PostgreSQL의 `trend_date`, `seven`, `gs25`, `cu`, `cs` (이전 원본의 `DATE`, `GS25`, `CU`를 변환) |
 
 기존 코드가 사용하는 브랜드 값은 `CU`, `GS25`, `seven`입니다.
 이전 시 원본 브랜드 값은 보존하고 조회에서는 대소문자를 정규화합니다.
