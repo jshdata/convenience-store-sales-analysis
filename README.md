@@ -159,24 +159,24 @@ flowchart LR
 ## 날짜 지정 시뮬레이션
 
 ```mermaid
-flowchart TD
-    Start([Slack 앱 홈에서 시작]) --> Select[기간 · 브랜드 선택]
-    Select --> Preview[기간 미리보기 · 발송 없음]
-    Preview --> Create[새 실행 생성 · 기간과 임계값 저장]
-    Create --> Click[사용자가 하루 진행 버튼 클릭]
-    Click --> Read[다음 날짜의 매출 편차 조회]
-    Read --> Check{고정 5·95백분위 경계 밖인가?}
-    Check -->|상한 이상 · 하한 이하| Send[시뮬레이션 표시와 함께 Slack 알림]
-    Check -->|정상 · 결측| Progress[처리 날짜와 진행 상태 저장]
-    Send --> Result{발송 결과 확인}
+flowchart LR
+    Start([Slack 앱 홈]) --> Select[기간 · 브랜드 선택]
+    Select --> Preview[기간 미리보기<br/>발송 없음]
+    Preview --> Create[실행 생성<br/>기간 · 임계값 저장]
+    Create --> Click[하루 진행]
+    Click --> Read[다음 날짜 조회]
+    Read --> Check{이상치인가?}
+    Check -->|급등 · 급감| Send[Slack 알림<br/>시뮬레이션 표시]
+    Check -->|정상 · 결측| Progress[진행 상태 저장]
+    Send --> Result{발송 결과}
     Result -->|성공| Receipt[(발송 이력 저장)]
     Receipt --> Progress
-    Result -->|불확실 · 오류| Stop([중단 · 자동 재전송 없음])
-    Progress --> End{종료일까지 처리했는가?}
-    End -->|아니요| Wait[다음 버튼 클릭 대기]
+    Result -->|오류 · 불확실| Stop([중단<br/>자동 재전송 없음])
+    Progress --> End{종료일인가?}
+    End -->|아니요| Wait[다음 진행 대기]
     Wait --> Click
-    End -->|예| Done([실행 완료])
-    Send -.->|진행일까지의 상세 분석 링크| Dashboard[Streamlit 대시보드]
+    End -->|예| Done([완료])
+    Send -.-> Dashboard[Streamlit<br/>상세 분석]
 
     classDef data fill:#eef3f8,stroke:#6482a0,color:#243d35
     classDef decision fill:#fff5df,stroke:#ad8c48,color:#243d35
