@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="800" viewBox="0 0 1440 800" role="img" aria-labelledby="title description">
+  <title id="title">날짜 지정 시뮬레이션 흐름</title>
+  <desc id="description">Slack 앱 홈에서 시작해 날짜를 하루씩 조회하고, 이상치 알림과 실행 상태를 기록하는 세 줄 지그재그 흐름도</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#52665d"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#447761"/>
+    </marker>
+    <style>
+      text { font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; fill: #243d35; }
+      .lane { font-size: 15px; font-weight: 700; fill: #648276; letter-spacing: 0.04em; }
+      .node { fill: #f5f8f5; stroke: #81988b; stroke-width: 2; }
+      .screen { fill: #e7f2eb; stroke: #447761; stroke-width: 2; }
+      .data { fill: #eef3f8; stroke: #6482a0; stroke-width: 2; }
+      .decision { fill: #fff5df; stroke: #ad8c48; stroke-width: 2; }
+      .label { font-size: 17px; font-weight: 600; text-anchor: middle; }
+      .small { font-size: 15px; font-weight: 500; text-anchor: middle; }
+      .edge { fill: none; stroke: #52665d; stroke-width: 2.2; marker-end: url(#arrow); stroke-linecap: round; stroke-linejoin: round; }
+      .edge-green { fill: none; stroke: #447761; stroke-width: 2.2; marker-end: url(#arrow-green); stroke-linecap: round; stroke-linejoin: round; }
+      .edge-dashed { fill: none; stroke: #6482a0; stroke-width: 2; stroke-dasharray: 7 6; marker-end: url(#arrow); stroke-linecap: round; }
+      .edge-label { font-size: 14px; font-weight: 600; text-anchor: middle; fill: #52665d; }
+      .label-bg { fill: #fff; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="800" rx="18" fill="#fff"/>
+  <text class="lane" x="30" y="40">1 · 실행 설정 및 하루 진행</text>
+  <text class="lane" x="30" y="300">2 · 날짜 판정 및 알림</text>
+  <text class="lane" x="30" y="555">3 · 상태 저장 및 반복</text>
+
+  <g aria-label="첫 번째 줄: 시뮬레이션 실행 설정">
+    <path class="edge" d="M 215 125 H 305"/>
+    <path class="edge" d="M 495 125 H 585"/>
+    <path class="edge" d="M 775 125 H 865"/>
+    <path class="edge" d="M 1055 125 H 1145"/>
+
+    <rect class="screen" x="30" y="80" width="180" height="90" rx="24"/>
+    <text class="label" x="120" y="132">Slack 앱 홈</text>
+
+    <rect class="node" x="310" y="80" width="180" height="90" rx="12"/>
+    <text class="label" x="400" y="120">
+      <tspan x="400">기간 · 브랜드</tspan>
+      <tspan x="400" dy="23">선택</tspan>
+    </text>
+
+    <rect class="node" x="590" y="80" width="180" height="90" rx="12"/>
+    <text class="label" x="680" y="120">
+      <tspan x="680">기간 미리보기</tspan>
+      <tspan x="680" dy="23">알림 발송 없음</tspan>
+    </text>
+
+    <rect class="node" x="870" y="80" width="180" height="90" rx="12"/>
+    <text class="label" x="960" y="120">
+      <tspan x="960">새 실행 생성</tspan>
+      <tspan x="960" dy="23">기간 · 임계값 저장</tspan>
+    </text>
+
+    <rect class="screen" x="1150" y="80" width="180" height="90" rx="12"/>
+    <text class="label" x="1240" y="132">하루 진행</text>
+  </g>
+
+  <g aria-label="두 번째 줄: 날짜 판정과 알림 처리">
+    <path class="edge" d="M 1240 175 V 330"/>
+    <path class="edge" d="M 1145 380 H 1050"/>
+    <path class="edge-green" d="M 870 380 H 775"/>
+    <path class="edge" d="M 585 380 H 490"/>
+    <path class="edge-green" d="M 310 380 H 215"/>
+    <rect class="label-bg" x="777" y="343" width="91" height="24" rx="5"/>
+    <text class="edge-label" x="822" y="361">급등 · 급감</text>
+    <rect class="label-bg" x="232" y="343" width="60" height="24" rx="5"/>
+    <text class="edge-label" x="262" y="361">성공</text>
+
+    <path class="edge" d="M 960 435 V 485 H 250 V 635 H 220"/>
+    <rect class="label-bg" x="535" y="469" width="170" height="28" rx="6"/>
+    <text class="edge-label" x="620" y="489">정상 · 결측</text>
+
+    <path class="edge" d="M 400 325 V 285 H 1430 V 635 H 1340"/>
+    <rect class="label-bg" x="510" y="271" width="165" height="27" rx="6"/>
+    <text class="edge-label" x="592" y="290">오류 · 불확실</text>
+
+    <path class="edge" d="M 120 435 V 585"/>
+
+    <path class="edge-dashed" d="M 680 330 V 275"/>
+
+    <rect class="node" x="1150" y="335" width="180" height="90" rx="12"/>
+    <text class="label" x="1240" y="375">
+      <tspan x="1240">다음 날짜 조회</tspan>
+      <tspan x="1240" dy="23">매출 편차</tspan>
+    </text>
+
+    <polygon class="decision" points="960,325 1045,380 960,435 875,380"/>
+    <text class="label" x="960" y="386">이상치인가?</text>
+
+    <rect class="screen" x="590" y="335" width="180" height="90" rx="12"/>
+    <text class="label" x="680" y="375">
+      <tspan x="680">Slack 알림</tspan>
+      <tspan x="680" dy="23">시뮬레이션 표시</tspan>
+    </text>
+
+    <polygon class="decision" points="400,325 485,380 400,435 315,380"/>
+    <text class="label" x="400" y="386">발송 결과</text>
+
+    <path class="data" d="M 30 335 H 195 Q 210 335 210 350 V 410 Q 210 425 195 425 H 30 Q 15 425 15 410 V 350 Q 15 335 30 335 Z"/>
+    <text class="small" x="112" y="375">
+      <tspan x="112">발송 이력</tspan>
+      <tspan x="112" dy="21">저장</tspan>
+    </text>
+
+    <rect class="screen" x="590" y="205" width="180" height="65" rx="12"/>
+    <text class="small" x="680" y="232">
+      <tspan x="680">Streamlit</tspan>
+      <tspan x="680" dy="20">상세 분석</tspan>
+    </text>
+  </g>
+
+  <g aria-label="세 번째 줄: 상태 저장, 종료 확인, 다음 날짜 반복">
+    <path class="edge" d="M 215 635 H 310"/>
+    <path class="edge-green" d="M 490 635 H 585"/>
+    <path class="edge" d="M 400 690 V 730 H 960 V 685"/>
+    <rect class="label-bg" x="660" y="714" width="125" height="27" rx="6"/>
+    <text class="edge-label" x="722" y="733">아니요</text>
+
+    <path class="edge-green" d="M 960 585 V 530 H 1390 V 125 H 1335"/>
+    <rect class="label-bg" x="1100" y="515" width="175" height="27" rx="6"/>
+    <text class="edge-label" x="1187" y="534">다음 날짜로 반복</text>
+
+    <rect class="node" x="30" y="590" width="180" height="90" rx="12"/>
+    <text class="label" x="120" y="630">
+      <tspan x="120">진행 날짜 · 상태</tspan>
+      <tspan x="120" dy="23">저장</tspan>
+    </text>
+
+    <polygon class="decision" points="400,580 485,635 400,690 315,635"/>
+    <text class="small" x="400" y="631">
+      <tspan x="400">종료일</tspan>
+      <tspan x="400" dy="19">인가?</tspan>
+    </text>
+
+    <rect class="screen" x="590" y="590" width="180" height="90" rx="24"/>
+    <text class="label" x="680" y="642">실행 완료</text>
+
+    <rect class="node" x="870" y="590" width="180" height="90" rx="12"/>
+    <text class="label" x="960" y="630">
+      <tspan x="960">다음 진행</tspan>
+      <tspan x="960" dy="23">버튼 대기</tspan>
+    </text>
+
+    <rect class="node" x="1150" y="590" width="180" height="90" rx="12"/>
+    <text class="label" x="1240" y="630">
+      <tspan x="1240">중단</tspan>
+      <tspan x="1240" dy="23">자동 재전송 없음</tspan>
+    </text>
+
+    <rect class="label-bg" x="495" y="612" width="38" height="25" rx="5"/>
+    <text class="edge-label" x="514" y="631">예</text>
+  </g>
+</svg>

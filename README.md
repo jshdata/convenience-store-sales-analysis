@@ -158,33 +158,7 @@ flowchart LR
 
 ## 날짜 지정 시뮬레이션
 
-```mermaid
-flowchart LR
-    Start([Slack 앱 홈]) --> Select[기간 · 브랜드 선택]
-    Select --> Preview[기간 미리보기<br/>발송 없음]
-    Preview --> Create[실행 생성<br/>기간 · 임계값 저장]
-    Create --> Click[하루 진행]
-    Click --> Read[다음 날짜 조회]
-    Read --> Check{이상치인가?}
-    Check -->|급등 · 급감| Send[Slack 알림<br/>시뮬레이션 표시]
-    Check -->|정상 · 결측| Progress[진행 상태 저장]
-    Send --> Result{발송 결과}
-    Result -->|성공| Receipt[(발송 이력 저장)]
-    Receipt --> Progress
-    Result -->|오류 · 불확실| Stop([중단<br/>자동 재전송 없음])
-    Progress --> End{종료일인가?}
-    End -->|아니요| Wait[다음 진행 대기]
-    Wait --> Click
-    End -->|예| Done([완료])
-    Send -.-> Dashboard[Streamlit<br/>상세 분석]
-
-    classDef data fill:#eef3f8,stroke:#6482a0,color:#243d35
-    classDef decision fill:#fff5df,stroke:#ad8c48,color:#243d35
-    classDef screen fill:#e7f2eb,stroke:#447761,color:#243d35
-    class Receipt data
-    class Check,Result,End decision
-    class Start,Send,Dashboard,Done screen
-```
+![Slack 앱 홈에서 시작해 날짜별 판정, 알림, 상태 저장과 다음 날짜 진행까지 보여주는 3줄 지그재그 시뮬레이션 흐름도](docs/simulation_flow.svg)
 
 Slack 봇의 **홈 → 날짜 지정 시뮬레이션**에서 실행합니다.
 
